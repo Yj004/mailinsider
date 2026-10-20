@@ -1,0 +1,60 @@
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+*.pem
+*.p12
+*.pfx
+credentials.json
+client_secret*.json
+service-account*.json
+**/secrets/
+TOKEN_ENCRYPTION_KEY*
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+.python-version
+
+# Node / frontend
+node_modules/
+apps/web/dist/
+apps/web/.vercel/
+apps/web/.playwright-browsers/
+coverage/
+playwright-report/
+test-results/
+
+# Local data / encryption keys
+data/*.db
+data/*.key
+data/documents/
+*.key
+
+# Film / recording scratch (keep public/video and marketing stills)
+apps/web/dist-video/
+scripts/film/audio/*.wav
+scripts/film/audio/*.mp3
+scripts/film/audio/concat.txt
+marketing/_record/
+marketing/_zoom_check/
+*.webm
+
+# Tooling / OS
+.bin/
+.cursor/
+.DS_Store
+*.log
+supabase/.temp/
+cloudbuild-env.yaml
+*.local

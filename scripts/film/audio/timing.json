@@ -1,0 +1,61 @@
+{
+  "total": 101.358096,
+  "voice": "en-IN-NeerjaNeural",
+  "rate": "+40%",
+  "chapters": [
+    {
+      "id": "hook",
+      "caption": "The problem",
+      "duration": 12.11,
+      "voice": "You send admissions emails, recommendation requests, and marketing outreach — then you wait in the dark. Did they open it? Click the link? View your PDF? MailInsider closes that gap."
+    },
+    {
+      "id": "home",
+      "caption": "What MailInsider is",
+      "duration": 9.302018,
+      "voice": "MailInsider is a Gmail-native email client with engagement intelligence. Connect your Google account, compose personal outreach, and see what happened after you hit send."
+    },
+    {
+      "id": "inbox",
+      "caption": "Your Sent mailbox",
+      "duration": 11.246008999999999,
+      "voice": "Your Sent mailbox looks familiar — like Gmail — but every thread can show opens, link clicks, and document views. Admissions, letters of recommendation, and campaign follow-ups live in one place."
+    },
+    {
+      "id": "compose",
+      "caption": "Compose",
+      "duration": 9.398005,
+      "voice": "Open Compose to write a short, precise message. Attach a PDF, add a tracked link, and keep your full signature clean — without double-pasting or broken formatting."
+    },
+    {
+      "id": "ai_rag",
+      "caption": "AI and RAG",
+      "duration": 18.398005,
+      "voice": "Here is the AI layer. Describe what you want in plain English, and MailInsider drafts with a local or cloud LLM. Retrieval-augmented generation pulls from your career PDFs and AI profile — so the email reflects your real experience, not generic filler. You always review before send. The AI never auto-sends."
+    },
+    {
+      "id": "send",
+      "caption": "Send through Gmail",
+      "duration": 8.462018,
+      "voice": "When you click Send, the message goes through your connected Gmail account. Acceptance is honest — and the conversation returns to your mailbox ready for tracking."
+    },
+    {
+      "id": "engagement",
+      "caption": "Opens, links, and files",
+      "duration": 11.174014,
+      "voice": "Filter by Opened, Links, or Files. Badges appear on the same conversation: opened, link viewed, file viewed. You know who engaged — and when — without leaving the mail UI."
+    },
+    {
+      "id": "reply",
+      "caption": "Reply in-thread",
+      "duration": 8.102018,
+      "voice": "When they reply, sync brings it into the same thread. Follow up with context — opens, clicks, and document views already on the timeline."
+    },
+    {
+      "id": "close",
+      "caption": "Send with clarity",
+      "duration": 13.166008999999999,
+      "voice": "MailInsider. Compose with AI grounded in your documents. Track engagement. Reply in-thread. Built for people who need clarity after send. Try it at mailinsider dot yashjeet dot space."
+    }
+  ]
+}

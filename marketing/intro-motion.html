@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MailInsider — 12s intro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0b1220;
+      --ink: #f4f7fb;
+      --muted: #9aa8bc;
+      --blue: #4285f4;
+      --red: #ea4335;
+      --yellow: #fbbc04;
+      --green: #34a853;
+      --card: rgba(255, 255, 255, 0.06);
+      --line: rgba(255, 255, 255, 0.12);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "DM Sans", system-ui, sans-serif;
+    }
+    .stage {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse 55% 45% at 78% 18%, rgba(66, 133, 244, 0.22), transparent 60%),
+        radial-gradient(ellipse 40% 35% at 12% 85%, rgba(52, 168, 83, 0.12), transparent 55%),
+        linear-gradient(160deg, #0b1220 0%, #121a2b 55%, #0d1524 100%);
+    }
+    .grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 64px 64px;
+      mask-image: radial-gradient(ellipse 70% 60% at 50% 45%, black, transparent);
+      opacity: 0.5;
+    }
+    .scene {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px;
+      opacity: 0;
+      transform: translateY(18px);
+      animation-fill-mode: both;
+      animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .eyebrow {
+      font-size: 22px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+      margin-bottom: 22px;
+    }
+    .headline {
+      font-family: "Instrument Serif", Georgia, serif;
+      font-size: 84px;
+      line-height: 1.05;
+      font-weight: 400;
+      text-align: center;
+      max-width: 1400px;
+    }
+    .sub {
+      margin-top: 28px;
+      font-size: 28px;
+      color: var(--muted);
+      text-align: center;
+      max-width: 900px;
+      line-height: 1.4;
+    }
+    .brand {
+      font-size: 92px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+    .brand .i { color: var(--red); }
+    .brand .n { color: var(--yellow); }
+    .brand .s { color: var(--green); }
+    .brand .ider { color: var(--blue); }
+    .metrics {
+      display: flex;
+      gap: 20px;
+      margin-top: 48px;
+    }
+    .pill {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 18px 28px;
+      border-radius: 999px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      font-size: 24px;
+      font-weight: 600;
+      opacity: 0;
+      transform: translateY(12px) scale(0.96);
+    }
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    .dot.open { background: var(--blue); box-shadow: 0 0 16px rgba(66,133,244,0.7); }
+    .dot.click { background: var(--yellow); box-shadow: 0 0 16px rgba(251,188,4,0.55); }
+    .dot.view { background: var(--green); box-shadow: 0 0 16px rgba(52,168,83,0.6); }
+
+    .mail-card {
+      width: 720px;
+      margin-top: 40px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--line);
+      padding: 28px 32px;
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    .mail-card .to { color: var(--muted); font-size: 18px; margin-bottom: 10px; }
+    .mail-card .subj { font-size: 26px; font-weight: 600; margin-bottom: 16px; }
+    .mail-card .body { color: var(--muted); font-size: 20px; line-height: 1.45; }
+    .attach {
+      margin-top: 18px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      border-radius: 10px;
+      background: rgba(66,133,244,0.12);
+      border: 1px solid rgba(66,133,244,0.28);
+      color: #a8c7fa;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .cta {
+      margin-top: 36px;
+      font-size: 26px;
+      color: var(--muted);
+      letter-spacing: 0.02em;
+    }
+    .cta strong { color: var(--ink); font-weight: 600; }
+
+    /* Timeline: total 12.5s */
+    #s1 { animation: inOut 3.2s both; animation-delay: 0s; }
+    #s2 { animation: inOut 3.4s both; animation-delay: 3.0s; }
+    #s3 { animation: inOut 3.6s both; animation-delay: 6.2s; }
+    #s4 { animation: fadeHold 3.0s both; animation-delay: 9.5s; }
+
+    #s2 .mail-card { animation: rise 0.7s both; animation-delay: 3.35s; }
+    #s3 .pill:nth-child(1) { animation: rise 0.55s both; animation-delay: 6.55s; }
+    #s3 .pill:nth-child(2) { animation: rise 0.55s both; animation-delay: 6.85s; }
+    #s3 .pill:nth-child(3) { animation: rise 0.55s both; animation-delay: 7.15s; }
+
+    @keyframes inOut {
+      0% { opacity: 0; transform: translateY(22px); }
+      12% { opacity: 1; transform: translateY(0); }
+      78% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-14px); }
+    }
+    @keyframes fadeHold {
+      0% { opacity: 0; transform: translateY(18px) scale(0.98); }
+      18% { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes rise {
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .progress {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      height: 4px;
+      background: rgba(255,255,255,0.08);
+    }
+    .progress > i {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--blue), var(--green));
+      animation: bar 12.5s linear both;
+    }
+    @keyframes bar {
+      to { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage" id="stage">
+    <div class="grid" aria-hidden="true"></div>
+
+    <section class="scene" id="s1">
+      <p class="eyebrow">The problem</p>
+      <h1 class="headline">You send the outreach.<br />Then silence.</h1>
+      <p class="sub">No idea if they opened it, clicked the link, or even looked at your PDF.</p>
+    </section>
+
+    <section class="scene" id="s2">
+      <p class="eyebrow">What breaks</p>
+      <h1 class="headline">Blind cold email<br />feels like guessing.</h1>
+      <div class="mail-card">
+        <div class="to">To: hiring@company.com</div>
+        <div class="subj">Software Engineer, GenAI — quick note</div>
+        <div class="body">Short personal pitch with role + proof attached…</div>
+        <div class="attach">resume.pdf · sent into the void</div>
+      </div>
+    </section>
+
+    <section class="scene" id="s3">
+      <p class="eyebrow">What we solve</p>
+      <h1 class="headline">See what happened<br />after you hit send.</h1>
+      <div class="metrics">
+        <div class="pill"><span class="dot open"></span>Opened</div>
+        <div class="pill"><span class="dot click"></span>Link clicked</div>
+        <div class="pill"><span class="dot view"></span>Doc viewed</div>
+      </div>
+      <p class="sub">Then reply in the same Gmail thread — without leaving MailInsider.</p>
+    </section>
+
+    <section class="scene" id="s4">
+      <p class="brand">Mail<span class="i">I</span><span class="n">n</span><span class="s">s</span><span class="ider">ider</span></p>
+      <p class="sub" style="margin-top:20px">Gmail-native outreach with engagement intelligence.</p>
+      <p class="cta"><strong>mailinsider.yashjeet.space</strong> · Compose with Gmail</p>
+    </section>
+
+    <div class="progress"><i></i></div>
+  </div>
+</body>
+</html>

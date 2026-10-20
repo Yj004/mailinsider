@@ -1,0 +1,79 @@
+{
+  "duration": 84.48,
+  "speed": 1.2,
+  "voice": "en-IN-NeerjaNeural",
+  "scenes": [
+    {
+      "id": "hook",
+      "start": 0,
+      "end": 10.09,
+      "chapter": "01",
+      "title": "The problem",
+      "caption": "You send admissions emails, recommendation requests, and marketing outreach — then you wait in the dark."
+    },
+    {
+      "id": "home",
+      "start": 10.09,
+      "end": 17.84,
+      "chapter": "02",
+      "title": "What MailInsider is",
+      "caption": "MailInsider is a Gmail-native email client with engagement intelligence."
+    },
+    {
+      "id": "inbox",
+      "start": 17.84,
+      "end": 27.22,
+      "chapter": "03",
+      "title": "Your Sent mailbox",
+      "caption": "Your Sent mailbox looks familiar — like Gmail — but every thread can show opens, link clicks, and document views."
+    },
+    {
+      "id": "compose",
+      "start": 27.22,
+      "end": 35.05,
+      "chapter": "04",
+      "title": "Compose",
+      "caption": "Open Compose to write a short, precise message."
+    },
+    {
+      "id": "ai_rag",
+      "start": 35.05,
+      "end": 50.38,
+      "chapter": "05",
+      "title": "AI and RAG",
+      "caption": "Here is the AI layer."
+    },
+    {
+      "id": "send",
+      "start": 50.38,
+      "end": 57.43,
+      "chapter": "06",
+      "title": "Send through Gmail",
+      "caption": "When you click Send, the message goes through your connected Gmail account."
+    },
+    {
+      "id": "engagement",
+      "start": 57.43,
+      "end": 66.74,
+      "chapter": "07",
+      "title": "Opens, links, and files",
+      "caption": "Filter by Opened, Links, or Files."
+    },
+    {
+      "id": "reply",
+      "start": 66.74,
+      "end": 73.49,
+      "chapter": "08",
+      "title": "Reply in-thread",
+      "caption": "When they reply, sync brings it into the same thread."
+    },
+    {
+      "id": "close",
+      "start": 73.49,
+      "end": 84.47,
+      "chapter": "09",
+      "title": "Send with clarity",
+      "caption": "MailInsider."
+    }
+  ]
+}

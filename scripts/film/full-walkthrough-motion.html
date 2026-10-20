@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MailInsider — Full product walkthrough</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink:#202124; --muted:#5f6368; --line:#e8eaed; --bg:#f6f8fc;
+      --blue:#1a73e8; --bs:#e8f0fe; --green:#137333; --gb:#e6f4ea;
+      --link:#1967d2; --lb:#e8f0fe; --file:#b06000; --fb:#fef7e0;
+      --red:#ea4335; --yel:#fbbc04; --gg:#34a853; --gbl:#4285f4;
+      --T:101.4s; /* synced to voiceover timing.json */
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{width:100%;height:100%;overflow:hidden;background:#05080f;font-family:"DM Sans",system-ui,sans-serif;color:var(--ink)}
+    .stage{position:relative;width:1920px;height:1080px;overflow:hidden;background:linear-gradient(155deg,#05080f,#0c1422 50%,#08101a)}
+    .hud{position:absolute;top:24px;left:48px;right:48px;z-index:40;display:flex;justify-content:space-between;color:#c5d0de;font-size:14px;font-weight:600;opacity:0;animation:fi .6s .2s both}
+    .hud b{color:#fff}
+    .progress{position:absolute;left:0;right:0;bottom:0;height:3px;z-index:50;background:rgba(255,255,255,.06)}
+    .progress>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gbl),var(--gg));animation:bar var(--T) linear both}
+    @keyframes bar{to{width:100%}} @keyframes fi{to{opacity:1}}
+
+    .lt{position:absolute;left:56px;bottom:48px;z-index:45;max-width:1050px;color:#f4f7fb;opacity:0;transform:translateY(18px)}
+    .lt .k{font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#8fa0b5;font-weight:700;margin-bottom:8px}
+    .lt .h{font-family:"Instrument Serif",Georgia,serif;font-size:40px;line-height:1.12;text-shadow:0 8px 28px rgba(0,0,0,.5)}
+    .lt .s{margin-top:8px;font-size:18px;color:#b7c4d4;max-width:800px;line-height:1.35}
+    /* chapter windows from chapters.json */
+    #lt0{animation:ltIO 12.11s 0s both}
+    #lt1{animation:ltIO 9.30s 12.11s both}
+    #lt2{animation:ltIO 11.25s 21.41s both}
+    #lt3{animation:ltIO 9.40s 32.66s both}
+    #lt4{animation:ltIO 18.40s 42.06s both}
+    #lt5{animation:ltIO 8.46s 60.46s both}
+    #lt6{animation:ltIO 11.16s 68.92s both}
+    #lt7{animation:ltIO 8.12s 80.08s both}
+    #lt8{animation:ltHold 13.16s 88.20s both}
+    @keyframes ltIO{0%{opacity:0;transform:translateY(18px)}12%{opacity:1;transform:none}78%{opacity:1}100%{opacity:0;transform:translateY(-12px)}}
+    @keyframes ltHold{0%{opacity:0;transform:translateY(18px)}15%{opacity:1;transform:none}100%{opacity:1}}
+
+    .scene{position:absolute;inset:0;opacity:0;pointer-events:none}
+    #s0{animation:sc 12.11s 0s both}
+    #s1{animation:sc 9.30s 12.11s both}
+    #s2{animation:sc 11.25s 21.41s both}
+    #s3{animation:sc 9.40s 32.66s both}
+    #s4{animation:sc 18.40s 42.06s both}
+    #s5{animation:sc 8.46s 60.46s both}
+    #s6{animation:sc 11.16s 68.92s both}
+    #s7{animation:sc 8.12s 80.08s both}
+    #s8{animation:scHold 13.16s 88.20s both}
+    @keyframes sc{0%{opacity:0}8%{opacity:1}82%{opacity:1}100%{opacity:0}}
+    @keyframes scHold{0%{opacity:0}10%{opacity:1}100%{opacity:1}}
+
+    .cam{position:absolute;inset:36px 48px 120px;transform-origin:50% 42%}
+    .app{width:100%;height:100%;background:#fff;border-radius:16px;overflow:hidden;display:grid;grid-template-columns:220px 1fr;box-shadow:0 36px 100px rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.08)}
+    .side{background:var(--bg);border-right:1px solid var(--line);padding:12px 8px}
+    .brand{display:flex;align-items:center;gap:8px;padding:4px 8px 12px;font-weight:700;font-size:16px}
+    .brand .sq{width:22px;height:22px;border-radius:6px;background:var(--red);color:#fff;display:grid;place-items:center;font-size:11px}
+    .cbtn{margin:0 4px 12px;height:40px;border-radius:20px;background:var(--bs);color:var(--blue);font-weight:600;font-size:13px;display:flex;align-items:center;justify-content:center}
+    .nav{padding:7px 10px;border-radius:0 16px 16px 0;margin-right:4px;font-size:12px;color:var(--muted);font-weight:500;display:flex;justify-content:space-between}
+    .nav.on{background:var(--bs);color:var(--blue);font-weight:700}
+    .main{display:flex;flex-direction:column;min-width:0}
+    .top{height:48px;display:flex;align-items:center;gap:10px;padding:0 14px;border-bottom:1px solid var(--line)}
+    .search{flex:1;height:32px;border-radius:8px;background:var(--bg);color:var(--muted);font-size:12px;display:flex;align-items:center;padding:0 10px}
+    .tabs{display:flex;gap:2px;padding:6px 12px 0;border-bottom:1px solid var(--line)}
+    .tab{padding:8px 12px 10px;font-size:12px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:6px;position:relative}
+    .tab.on{color:var(--blue)}.tab.on::after{content:"";position:absolute;left:8px;right:8px;bottom:-1px;height:3px;border-radius:3px 3px 0 0;background:var(--blue)}
+    .b{min-width:16px;height:16px;padding:0 5px;border-radius:8px;font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+    .b.o{background:var(--gb);color:var(--green)}.b.l{background:var(--lb);color:var(--link)}.b.f{background:var(--fb);color:var(--file)}
+    .list{flex:1;overflow:hidden}
+    .row{display:grid;grid-template-columns:18px 200px 1fr auto 52px;gap:6px;align-items:center;padding:7px 14px;border-bottom:1px solid #f1f3f4;font-size:11.5px}
+    .row .when{font-size:10px;color:#80868b;text-align:right;white-space:nowrap}
+    .mail-meta{display:flex;justify-content:space-between;align-items:center;padding:6px 14px;font-size:11px;color:var(--muted);border-bottom:1px solid var(--line);background:#fafbfc}
+    .mail-meta strong{color:var(--ink)}
+    .side .stat{margin:8px 10px;padding:8px 10px;border-radius:10px;background:#fff;border:1px solid var(--line);font-size:10px;color:var(--muted);line-height:1.35}
+    .side .stat b{display:block;color:var(--ink);font-size:13px;margin-bottom:2px}
+    .dot{width:7px;height:7px;border-radius:50%;background:var(--blue)}
+    .to{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .subj{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.subj span{color:var(--muted);font-weight:400}
+    .chip{font-size:9px;font-weight:700;padding:2px 7px;border-radius:999px;margin-left:3px}
+    .chip.o{background:var(--gb);color:var(--green)}.chip.l{background:var(--lb);color:var(--link)}.chip.f{background:var(--fb);color:var(--file)}.chip.r{background:var(--gb);color:var(--green)}
+
+    /* Hook */
+    .hook{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#f4f7fb}
+    .hook .big{font-family:"Instrument Serif",Georgia,serif;font-size:64px;line-height:1.08;max-width:1180px}
+    .hook .small{margin-top:18px;font-size:22px;color:#9eb0c7;max-width:720px}
+
+    /* Home cards */
+    .home{position:absolute;inset:80px 80px 140px;display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;color:#f4f7fb}
+    .home h1{font-family:"Instrument Serif",Georgia,serif;font-size:52px;line-height:1.1}
+    .home p{margin-top:14px;font-size:20px;color:#b7c4d4;max-width:520px;line-height:1.4}
+    .home .card{background:#fff;color:var(--ink);border-radius:16px;padding:22px;box-shadow:0 30px 80px rgba(0,0,0,.4)}
+    .home .card h3{font-size:16px;margin-bottom:10px}
+    .home .card li{font-size:13px;color:var(--muted);margin:6px 0;list-style:none;padding-left:14px;position:relative}
+    .home .card li::before{content:"";position:absolute;left:0;top:7px;width:6px;height:6px;border-radius:50%;background:var(--blue)}
+
+    /* AI / RAG panel */
+    .aiwrap{position:absolute;inset:60px 70px 130px;display:grid;grid-template-columns:1fr 1fr;gap:24px}
+    .panel{background:#fff;border-radius:16px;padding:22px;box-shadow:0 24px 70px rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.08)}
+    .panel h3{font-size:18px;margin-bottom:12px}
+    .panel .flow{font-size:13px;color:var(--muted);line-height:1.5}
+    .panel .box{margin-top:12px;padding:12px;border-radius:10px;background:var(--bg);font-size:13px;border:1px solid var(--line)}
+    .panel .box strong{display:block;color:var(--blue);font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+    .rag-chunk{margin-top:8px;padding:8px 10px;border-radius:8px;background:#fff;border:1px solid var(--line);font-size:12px;color:var(--muted)}
+    .ai-prompt{display:flex;gap:8px;align-items:center;margin-top:14px;padding:10px;border-radius:10px;border:1px solid #c5d8f7;background:#f8fbff}
+    .ai-prompt .create{background:var(--blue);color:#fff;border:0;border-radius:8px;padding:8px 12px;font-weight:700;font-size:12px}
+
+    .compose-float{position:absolute;right:70px;bottom:40px;width:400px;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(0,0,0,.35);overflow:hidden;z-index:5}
+    .compose-float .hd{padding:10px 14px;background:var(--bg);border-bottom:1px solid var(--line);font-size:13px;font-weight:600}
+    .compose-float .f{padding:8px 14px;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted)}
+    .compose-float .body{padding:12px 14px;font-size:13px;color:var(--muted);min-height:70px}
+
+    .thread{position:absolute;left:260px;right:70px;top:70px;bottom:50px;background:#fff;border-radius:14px;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+    .thread h3{font-size:18px;margin-bottom:4px}.thread .meta{font-size:12px;color:var(--muted);margin-bottom:14px}
+    .bub{padding:12px 14px;border-radius:10px;margin-bottom:10px;font-size:13px;line-height:1.4;max-width:88%}
+    .bub.out{background:var(--bs)}.bub.in{background:var(--bg);margin-left:auto;border:1px solid var(--line)}
+    .tev{display:inline-block;font-size:11px;font-weight:700;padding:4px 9px;border-radius:999px;margin:4px 4px 0 0}
+    .tev.o{background:var(--gb);color:var(--green)}.tev.l{background:var(--lb);color:var(--link)}.tev.f{background:var(--fb);color:var(--file)}.tev.r{background:var(--gb);color:var(--green)}
+
+    .end{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#f4f7fb}
+    .end .name{font-size:60px;font-weight:700}
+    .end .tag{margin-top:12px;font-size:24px;color:#b7c4d4;font-family:"Instrument Serif",Georgia,serif}
+    .end .url{margin-top:28px;font-size:20px;font-weight:600}
+
+    #s2 .cam{animation:push 8s cubic-bezier(.45,.05,.55,.95) both}
+    #s6 .cam{animation:zoomEng 10s cubic-bezier(.45,.05,.55,.95) both}
+    @keyframes push{0%{transform:scale(.96)}30%{transform:scale(1.06) translate(0,-2%)}100%{transform:scale(1.1) translate(2%,-4%)}}
+    @keyframes zoomEng{0%{transform:scale(1.05)}40%{transform:scale(1.4) translate(12%,-4%)}100%{transform:scale(1.35) translate(10%,-2%)}}
+  </style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="hud"><span><b>MailInsider</b> · Product walkthrough</span><span>AI · RAG · Compose · Engagement</span></div>
+
+  <!-- 0 Hook -->
+  <section class="scene" id="s0"><div class="hook"><div class="big">You send. Then silence.</div><div class="small">Opens? Clicks? Document views? MailInsider shows what happened after send.</div></div></section>
+
+  <!-- 1 Home -->
+  <section class="scene" id="s1">
+    <div class="home">
+      <div>
+        <h1>Gmail-native outreach<br/>with engagement intelligence.</h1>
+        <p>Connect Gmail. Write personal cold email with PDFs. Track opens, links, and document views — then reply in the same thread.</p>
+      </div>
+      <div class="card">
+        <h3>Built for clarity</h3>
+        <ul>
+          <li>Send through your Google account</li>
+          <li>AI drafts grounded in your career docs</li>
+          <li>Opened · Links · Files on every conversation</li>
+          <li>Human always hits Send</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 Inbox -->
+  <section class="scene" id="s2">
+    <div class="cam"><div class="app">
+      <aside class="side">
+        <div class="brand"><div class="sq">M</div>MailInsider</div>
+        <div class="cbtn">+ Compose</div>
+        <div class="nav on"><span>Sent</span><span>48</span></div>
+        <div class="nav"><span>Drafts</span><span>5</span></div>
+        <div class="nav"><span>Unopened</span><span>9</span></div>
+        <div class="nav"><span>Follow-ups</span><span>12</span></div>
+        <div class="nav"><span>Campaigns</span><span>3</span></div>
+        <div class="nav"><span>Contacts</span><span>186</span></div>
+        <div class="nav"><span>AI P&amp;R</span></div>
+        <div class="stat"><b>This week</b>32 sent · 61% opened · 14 replies</div>
+      </aside>
+      <div class="main">
+        <div class="top"><div class="search">Search mail</div></div>
+        <div class="tabs">
+          <div class="tab on">Primary</div>
+          <div class="tab">Opened <span class="b o">29</span></div>
+          <div class="tab">Links <span class="b l">17</span></div>
+          <div class="tab">Files <span class="b f">11</span></div>
+          <div class="tab">Quiet</div>
+        </div>
+        <div class="mail-meta"><span><strong>1–14</strong> of <strong>48</strong> · Admissions · LoR · Marketing</span><span>Sorted by recent activity</span></div>
+        <div class="list">
+          <div class="row"><div class="dot"></div><div class="to">admissions@nyu.edu</div><div class="subj">Exploring MSc Data Science — <span>portfolio + transcript attached…</span></div><div><span class="chip o">Opened</span><span class="chip l">Link</span><span class="chip f">File</span></div><div class="when">10:14</div></div>
+          <div class="row"><div class="dot"></div><div class="to">prof.chen@stanford.edu</div><div class="subj">Letter of Recommendation request — <span>talking points PDF…</span></div><div><span class="chip o">Opened</span><span class="chip r">Replied</span></div><div class="when">9:58</div></div>
+          <div class="row"><div class="dot"></div><div class="to">grad.admissions@ucl.ac.uk</div><div class="subj">MSc Marketing Analytics follow-up — <span>SOP link updated…</span></div><div><span class="chip o">Opened</span><span class="chip l">Link</span></div><div class="when">9:41</div></div>
+          <div class="row"><div class="dot"></div><div class="to">mba.admissions@lse.ac.uk</div><div class="subj">MBA Class of 2027 — growth marketing background</div><div><span class="chip o">Opened</span></div><div class="when">Yesterday</div></div>
+          <div class="row"><div class="dot"></div><div class="to">partnerships@hubspot.com</div><div class="subj">Co-marketing webinar proposal — <span>audience overlap deck…</span></div><div><span class="chip o">Opened</span><span class="chip l">Link</span></div><div class="when">Yesterday</div></div>
+          <div class="row"><div class="dot"></div><div class="to">dr.patel@columbia.edu</div><div class="subj">LoR packet for Columbia SIPA — <span>draft bullets…</span></div><div><span class="chip o">Opened</span><span class="chip f">File</span></div><div class="when">Yesterday</div></div>
+          <div class="row"><div class="dot"></div><div class="to">hello@producthunt.com</div><div class="subj">Launch day checklist — MailInsider — <span>hunter brief…</span></div><div><span class="chip l">Link</span><span class="chip f">File</span></div><div class="when">Mon</div></div>
+          <div class="row"><div class="dot"></div><div class="to">alumni@oxford.edu</div><div class="subj">Alumni mentor request — admissions journey</div><div><span class="chip o">Opened</span><span class="chip r">Replied</span></div><div class="when">Mon</div></div>
+          <div class="row"><div class="dot"></div><div class="to">admissions@berkeley.edu</div><div class="subj">MSc interest — GenAI + growth experiments</div><div><span class="chip o">Opened</span><span class="chip l">Link</span></div><div class="when">Mon</div></div>
+          <div class="row"><div class="dot"></div><div class="to">editor@techcrunch.com</div><div class="subj">Story pitch: outreach with engagement proof</div><div><span class="chip o">Opened</span></div><div class="when">Sun</div></div>
+          <div class="row"><div class="dot"></div><div class="to">careers@stripe.com</div><div class="subj">Partnership marketing internship inquiry</div><div><span class="chip o">Opened</span><span class="chip f">File</span></div><div class="when">Sun</div></div>
+          <div class="row"><div class="dot"></div><div class="to">gradadmit@cmu.edu</div><div class="subj">MSIN application materials — <span>resume + projects…</span></div><div><span class="chip o">Opened</span><span class="chip l">Link</span><span class="chip f">File</span></div><div class="when">Sat</div></div>
+          <div class="row"><div class="dot"></div><div class="to">prof.nguyen@mit.edu</div><div class="subj">Quick LoR follow-up — school list attached</div><div><span class="chip o">Opened</span><span class="chip r">Replied</span></div><div class="when">Sat</div></div>
+          <div class="row"><div class="dot"></div><div class="to">hello@notion.so</div><div class="subj">Community spotlight — builders using RAG email</div><div><span class="chip l">Link</span></div><div class="when">Fri</div></div>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- 3 Compose -->
+  <section class="scene" id="s3">
+    <div class="cam"><div class="app" style="opacity:.9">
+      <aside class="side"><div class="brand"><div class="sq">M</div>MailInsider</div><div class="cbtn">+ Compose</div><div class="nav on"><span>Sent</span></div></aside>
+      <div class="main"><div class="top"><div class="search">Search mail</div></div><div class="tabs"><div class="tab on">Primary</div></div>
+        <div class="list"><div class="row"><div class="dot"></div><div class="to">admissions@nyu.edu</div><div class="subj">Exploring MSc…</div><div><span class="chip o">Opened</span></div></div></div>
+      </div>
+    </div>
+    <div class="compose-float">
+      <div class="hd">New Message</div>
+      <div class="f">From <b style="color:#202124">work@mailinsider.app</b></div>
+      <div class="f">To <b style="color:#202124">admissions@berkeley.edu</b></div>
+      <div class="f">Subject <b style="color:#202124">MSc application — growth marketing background</b></div>
+      <div class="body">Short personal pitch · tracked portfolio link · transcript PDF attached · full signature once.</div>
+      <div class="f" style="border:0;display:flex;gap:8px;align-items:center"><span style="background:#1a73e8;color:#fff;padding:8px 16px;border-radius:18px;font-weight:700;font-size:12px">Send</span> <span style="font-size:11px">PDF · Tracked link</span></div>
+    </div>
+    </div>
+  </section>
+
+  <!-- 4 AI + RAG -->
+  <section class="scene" id="s4">
+    <div class="aiwrap">
+      <div class="panel">
+        <h3>AI Compose</h3>
+        <div class="flow">Describe the email in plain English. The model drafts a short, precise message. You review — MailInsider never auto-sends.</div>
+        <div class="ai-prompt">
+          <span style="font-weight:700;color:#1a73e8">✦</span>
+          <span style="flex:1;font-size:13px">Write a LoR follow-up for Professor Chen</span>
+          <button class="create" type="button">Create</button>
+        </div>
+        <div class="box" style="margin-top:14px"><strong>Draft preview</strong>Dear Professor Chen — thank you again for considering a letter. Attached are talking points grounded in my lab work and growth marketing projects…</div>
+      </div>
+      <div class="panel">
+        <h3>RAG · Career knowledge</h3>
+        <div class="flow">Retrieval-augmented generation indexes your PDFs and AI P&amp;R profile, then injects the most relevant chunks into the prompt.</div>
+        <div class="box"><strong>Retrieved context · 3 / 42 chunks</strong>
+          <div class="rag-chunk">resume.pdf · p.2 — led GenAI outreach experiments; open rate +18%…</div>
+          <div class="rag-chunk">ai-pr.md — MSc target: Data Science / Marketing Analytics…</div>
+          <div class="rag-chunk">lor-packet.pdf · p.1 — preferred titles: Software Engineer, GenAI…</div>
+          <div class="rag-chunk">projects.pdf · p.4 — HubSpot co-marketing webinar case study…</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 Send -->
+  <section class="scene" id="s5">
+    <div class="cam"><div class="app">
+      <aside class="side"><div class="brand"><div class="sq">M</div>MailInsider</div><div class="cbtn">+ Compose</div><div class="nav on"><span>Sent</span></div></aside>
+      <div class="main">
+        <div class="top"><div class="search">Search mail</div></div>
+        <div class="tabs"><div class="tab on">Primary</div></div>
+        <div class="mail-meta"><span>Send accepted · tracking active</span><span>Gmail · work@mailinsider.app</span></div>
+        <div class="list">
+          <div class="row"><div class="dot"></div><div class="to">admissions@berkeley.edu</div><div class="subj">MSc application — growth marketing — <span>Accepted by Gmail</span></div><div><span class="chip o">Sent</span></div><div class="when">Just now</div></div>
+          <div class="row"><div class="dot"></div><div class="to">admissions@nyu.edu</div><div class="subj">Exploring MSc Data Science</div><div><span class="chip o">Opened</span><span class="chip l">Link</span><span class="chip f">File</span></div><div class="when">10:14</div></div>
+          <div class="row"><div class="dot"></div><div class="to">prof.chen@stanford.edu</div><div class="subj">Letter of Recommendation request</div><div><span class="chip o">Opened</span><span class="chip r">Replied</span></div><div class="when">9:58</div></div>
+          <div class="row"><div class="dot"></div><div class="to">grad.admissions@ucl.ac.uk</div><div class="subj">MSc Marketing Analytics follow-up</div><div><span class="chip o">Opened</span><span class="chip l">Link</span></div><div class="when">9:41</div></div>
+          <div class="row"><div class="dot"></div><div class="to">partnerships@hubspot.com</div><div class="subj">Co-marketing webinar proposal</div><div><span class="chip o">Opened</span><span class="chip l">Link</span></div><div class="when">Yesterday</div></div>
+          <div class="row"><div class="dot"></div><div class="to">dr.patel@columbia.edu</div><div class="subj">LoR packet for SIPA</div><div><span class="chip f">File</span></div><div class="when">Yesterday</div></div>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- 6 Engagement -->
+  <section class="scene" id="s6">
+    <div class="cam"><div class="app">
+      <aside class="side"><div class="brand"><div class="sq">M</div>MailInsider</div><div class="nav on"><span>Sent</span></div></aside>
+      <div class="main">
+        <div class="top"><div class="search">Search mail</div></div>
+        <div class="tabs">
+          <div class="tab">Primary</div>
+          <div class="tab on">Opened <span class="b o">29</span></div>
+          <div class="tab">Links <span class="b l">17</span></div>
+          <div class="tab">Files <span class="b f">11</span></div>
+        </div>
+        <div class="mail-meta"><span>Opened filter · <strong>29</strong> conversations with proof</span><span>Live engagement</span></div>
+        <div class="list">
+          <div class="row"><div class="dot"></div><div class="to">admissions@nyu.edu</div><div class="subj">Exploring MSc Data Science</div><div><span class="chip o">Opened</span><span class="chip l">Link viewed</span><span class="chip f">File viewed</span></div><div class="when">10:14</div></div>
+          <div class="row"><div class="dot"></div><div class="to">prof.chen@stanford.edu</div><div class="subj">Letter of Recommendation</div><div><span class="chip o">Opened</span><span class="chip l">Link viewed</span><span class="chip r">Replied</span></div><div class="when">9:58</div></div>
+          <div class="row"><div class="dot"></div><div class="to">grad.admissions@ucl.ac.uk</div><div class="subj">MSc Marketing Analytics follow-up</div><div><span class="chip o">Opened</span><span class="chip l">Link viewed</span></div><div class="when">9:41</div></div>
+          <div class="row"><div class="dot"></div><div class="to">mba.admissions@lse.ac.uk</div><div class="subj">MBA Class of 2027 interest</div><div><span class="chip o">Opened</span></div><div class="when">Yesterday</div></div>
+          <div class="row"><div class="dot"></div><div class="to">partnerships@hubspot.com</div><div class="subj">Co-marketing webinar proposal</div><div><span class="chip o">Opened</span><span class="chip l">Link viewed</span></div><div class="when">Yesterday</div></div>
+          <div class="row"><div class="dot"></div><div class="to">admissions@berkeley.edu</div><div class="subj">MSc interest — GenAI + growth</div><div><span class="chip o">Opened</span><span class="chip l">Link viewed</span></div><div class="when">Mon</div></div>
+          <div class="row"><div class="dot"></div><div class="to">gradadmit@cmu.edu</div><div class="subj">MSIN application materials</div><div><span class="chip o">Opened</span><span class="chip f">File viewed</span></div><div class="when">Sat</div></div>
+          <div class="row"><div class="dot"></div><div class="to">alumni@oxford.edu</div><div class="subj">Alumni mentor request</div><div><span class="chip o">Opened</span><span class="chip r">Replied</span></div><div class="when">Mon</div></div>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- 7 Reply -->
+  <section class="scene" id="s7">
+    <div class="thread">
+      <h3>Request for Letter of Recommendation</h3>
+      <div class="meta">prof.chen@stanford.edu · synced from Gmail · same thread</div>
+      <div class="bub out">Dear Professor Chen — hoping you might write a short LoR. Portfolio and talking points linked.</div>
+      <div class="bub in">Happy to help. I reviewed the packet — send the school list by Friday.</div>
+      <div>
+        <span class="tev o">Opened</span><span class="tev l">Link viewed</span><span class="tev f">File viewed</span><span class="tev r">Replied</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 End -->
+  <section class="scene" id="s8">
+    <div class="end">
+      <div class="name">Mail<span style="color:#ea4335">I</span><span style="color:#fbbc04">n</span><span style="color:#34a853">s</span><span style="color:#4285f4">ider</span></div>
+      <div class="tag">Compose with AI. Track engagement. Reply with clarity.</div>
+      <div class="url">mailinsider.yashjeet.space</div>
+    </div>
+  </section>
+
+  <div class="lt" id="lt0"><div class="k">01 · Problem</div><div class="h">Outreach without a feedback loop.</div><div class="s">Admissions, LoRs, marketing — and no signal after send.</div></div>
+  <div class="lt" id="lt1"><div class="k">02 · Product</div><div class="h">Gmail-native. Engagement-aware.</div><div class="s">One client for compose, track, and reply.</div></div>
+  <div class="lt" id="lt2"><div class="k">03 · Mailbox</div><div class="h">A full pipeline of outreach.</div><div class="s">Every conversation in Sent — ready for opens, links, and files.</div></div>
+  <div class="lt" id="lt3"><div class="k">04 · Compose</div><div class="h">Short. Precise. Human.</div><div class="s">PDFs, tracked links, clean signature — then you send.</div></div>
+  <div class="lt" id="lt4"><div class="k">05 · AI + RAG</div><div class="h">Drafts grounded in your career.</div><div class="s">Local or cloud LLM · retrieve from PDFs · you always review.</div></div>
+  <div class="lt" id="lt5"><div class="k">06 · Send</div><div class="h">Through your Gmail account.</div><div class="s">Honest acceptance — then tracking begins.</div></div>
+  <div class="lt" id="lt6"><div class="k">07 · Engagement</div><div class="h">Opened. Link viewed. File viewed.</div><div class="s">Filter by signal. Prioritize hot threads.</div></div>
+  <div class="lt" id="lt7"><div class="k">08 · Reply</div><div class="h">Same thread. Full context.</div><div class="s">Timeline plus reply — without leaving MailInsider.</div></div>
+  <div class="lt" id="lt8"><div class="k">09 · Next</div><div class="h">Send with clarity.</div><div class="s">mailinsider.yashjeet.space</div></div>
+
+  <div class="progress"><i></i></div>
+</div>
+</body>
+</html>

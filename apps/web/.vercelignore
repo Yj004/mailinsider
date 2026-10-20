@@ -1,0 +1,12 @@
+node_modules
+dist
+dist-video
+.playwright-browsers
+.vercel
+.DS_Store
+*.log
+.env
+.env.*
+coverage
+playwright-report
+test-results

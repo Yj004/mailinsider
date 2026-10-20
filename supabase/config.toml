@@ -1,0 +1,14 @@
+# Minimal Supabase config for Edge Functions.
+# Project ref comes from `supabase link` or the dashboard.
+
+[functions.open-pixel]
+# Gmail image proxies cannot send Authorization headers.
+verify_jwt = false
+
+[functions.view-document]
+# Recipients open PDF links from any device — no JWT.
+verify_jwt = false
+
+[functions.track-click]
+# Tracked redirects in outbound mail — no JWT.
+verify_jwt = false

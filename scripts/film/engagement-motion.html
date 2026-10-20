@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&display=swap");
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; height: 100%; overflow: hidden;
+      font-family: "Google Sans", system-ui, sans-serif;
+      color: #202124;
+      background:
+        radial-gradient(ellipse 70% 50% at 78% 8%, rgba(26,115,232,.14), transparent 55%),
+        radial-gradient(ellipse 45% 40% at 8% 92%, rgba(194,231,255,.55), transparent 50%),
+        #f6f8fc;
+    }
+    .stage {
+      height: 100%;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      padding: 64px 72px 88px;
+      gap: 28px;
+    }
+    .head {
+      display: flex; align-items: baseline; justify-content: space-between; gap: 24px;
+      opacity: 0; transform: translateY(16px);
+      animation: rise .7s cubic-bezier(.22,1,.36,1) .1s forwards;
+    }
+    .eyebrow {
+      margin: 0 0 8px;
+      font-size: 12px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: #0b57d0;
+    }
+    h1 {
+      margin: 0; font-size: 42px; font-weight: 600; letter-spacing: -.02em; line-height: 1.1;
+    }
+    h1 span.g { color: #ea4335; }
+    h1 span.y { color: #fbbc04; }
+    h1 span.s { color: #34a853; }
+    h1 span.b { color: #4285f4; }
+    .sub { margin: 0; max-width: 34ch; font-size: 16px; color: #5f6368; line-height: 1.45; }
+
+    .canvas {
+      position: relative;
+      display: grid;
+      place-items: center;
+    }
+
+    /* Illustrator-style artboard */
+    .artboard {
+      position: relative;
+      width: min(1180px, 100%);
+      height: 520px;
+    }
+
+    /* Soft paper shadows / floating shapes */
+    .blob {
+      position: absolute; border-radius: 50%; filter: blur(2px); pointer-events: none;
+      opacity: 0; animation: fadeIn 1s ease forwards;
+    }
+    .blob.a { width: 180px; height: 180px; background: rgba(194,231,255,.55); left: -20px; top: 40px; animation-delay: .2s; }
+    .blob.b { width: 140px; height: 140px; background: rgba(211,227,253,.7); right: 40px; bottom: 30px; animation-delay: .35s; }
+    .blob.c { width: 90px; height: 90px; background: rgba(52,168,83,.12); left: 38%; top: -10px; animation-delay: .5s; }
+
+    /* Path line connecting steps */
+    .path {
+      position: absolute; left: 8%; right: 8%; top: 48%;
+      height: 3px; border-radius: 99px;
+      background: #e0e3e7;
+      overflow: hidden;
+    }
+    .path-fill {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg, #0b57d0, #4285f4, #34a853, #fbbc04);
+      border-radius: 99px;
+      animation: pathGrow 16s cubic-bezier(.22,1,.36,1) 1.2s forwards;
+    }
+    @keyframes pathGrow {
+      0% { width: 0%; }
+      18% { width: 12%; }
+      38% { width: 38%; }
+      58% { width: 64%; }
+      78% { width: 90%; }
+      100% { width: 100%; }
+    }
+
+    .steps {
+      position: absolute; inset: 0;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+      align-items: center;
+      padding: 0 12px;
+    }
+
+    .step {
+      position: relative;
+      display: grid;
+      justify-items: center;
+      gap: 18px;
+      opacity: 0;
+      transform: translateY(28px) scale(.92);
+    }
+    .step.s1 { animation: pop .85s cubic-bezier(.22,1,.36,1) .9s forwards; }
+    .step.s2 { animation: pop .85s cubic-bezier(.22,1,.36,1) 4.6s forwards; }
+    .step.s3 { animation: pop .85s cubic-bezier(.22,1,.36,1) 9.0s forwards; }
+    .step.s4 { animation: pop .85s cubic-bezier(.22,1,.36,1) 13.4s forwards; }
+
+    .card {
+      width: 210px;
+      background: #fff;
+      border: 1px solid #e0e3e7;
+      border-radius: 20px;
+      padding: 22px 18px 18px;
+      box-shadow:
+        0 1px 2px rgba(60,64,67,.12),
+        0 12px 32px rgba(60,64,67,.12);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: "";
+      position: absolute; inset: 0 auto auto 0; right: 0; height: 4px;
+      background: var(--accent, #0b57d0);
+      transform: scaleX(0); transform-origin: left;
+      animation: barIn .6s ease forwards;
+      animation-delay: inherit;
+    }
+    .step.s1 .card::before { animation-delay: 1.2s; }
+    .step.s2 .card::before { animation-delay: 4.9s; }
+    .step.s3 .card::before { animation-delay: 9.3s; }
+    .step.s4 .card::before { animation-delay: 13.7s; }
+
+    .illus {
+      width: 120px; height: 96px; margin: 0 auto 14px;
+      display: grid; place-items: center;
+    }
+    .illus svg { width: 100%; height: 100%; overflow: visible; }
+
+    .label {
+      font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+      color: var(--accent, #0b57d0); margin: 0 0 6px;
+    }
+    .title { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -.01em; }
+    .hint { margin: 8px 0 0; font-size: 13px; color: #5f6368; line-height: 1.35; }
+
+    .badge {
+      position: absolute; top: -10px; right: -8px;
+      background: var(--accent, #0b57d0); color: #fff;
+      font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 999px;
+      box-shadow: 0 4px 12px rgba(11,87,208,.28);
+      opacity: 0; transform: scale(.6);
+    }
+    .step.s1 .badge { animation: badgeIn .5s ease 2.4s forwards; }
+    .step.s2 .badge { animation: badgeIn .5s ease 6.2s forwards; }
+    .step.s3 .badge { animation: badgeIn .5s ease 10.8s forwards; }
+    .step.s4 .badge { animation: badgeIn .5s ease 15.2s forwards; }
+
+    /* Pulse ring when step activates */
+    .ring {
+      position: absolute; width: 230px; height: 230px; border-radius: 50%;
+      border: 2px solid var(--accent, #0b57d0);
+      opacity: 0; pointer-events: none;
+    }
+    .step.s1 .ring { animation: pulseRing 1.2s ease 1.1s; }
+    .step.s2 .ring { animation: pulseRing 1.2s ease 4.8s; }
+    .step.s3 .ring { animation: pulseRing 1.2s ease 9.2s; }
+    .step.s4 .ring { animation: pulseRing 1.2s ease 13.6s; }
+
+    /* Travelling packet along path */
+    .packet {
+      position: absolute;
+      top: calc(48% - 14px);
+      left: 8%;
+      width: 28px; height: 28px;
+      margin-left: -14px;
+      border-radius: 8px;
+      background: #0b57d0;
+      box-shadow: 0 0 0 6px rgba(11,87,208,.18), 0 8px 20px rgba(11,87,208,.35);
+      opacity: 0;
+      animation: packetRide 16s cubic-bezier(.22,1,.36,1) 1.2s forwards;
+      z-index: 5;
+    }
+    .packet svg { width: 16px; height: 16px; display: block; margin: 6px; fill: #fff; }
+
+    .legend {
+      display: flex; flex-wrap: wrap; gap: 10px 18px; justify-content: center;
+      opacity: 0; animation: rise .6s ease 1.6s forwards;
+    }
+    .chip {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 14px; border-radius: 999px;
+      background: #fff; border: 1px solid #e0e3e7;
+      font-size: 13px; color: #3c4043; font-weight: 500;
+    }
+    .chip i {
+      width: 8px; height: 8px; border-radius: 50%; display: block;
+    }
+
+    /* SVG micro-motions */
+    .fly { animation: floatY 2.4s ease-in-out infinite; }
+    .blink { animation: blinkOpen 2.8s ease-in-out infinite; }
+    .docSlide { animation: docIn .9s cubic-bezier(.22,1,.36,1) 9.6s both; }
+    .clickRipple { animation: clickPop .7s ease 14.2s both; }
+
+    @keyframes rise { to { opacity: 1; transform: none; } }
+    @keyframes fadeIn { to { opacity: 1; } }
+    @keyframes pop { to { opacity: 1; transform: none; } }
+    @keyframes barIn { to { transform: scaleX(1); } }
+    @keyframes badgeIn { to { opacity: 1; transform: scale(1); } }
+    @keyframes pulseRing {
+      0% { opacity: .55; transform: scale(.55); }
+      100% { opacity: 0; transform: scale(1.25); }
+    }
+    @keyframes packetRide {
+      0% { left: 8%; opacity: 0; }
+      4% { opacity: 1; }
+      18% { left: 20%; }
+      38% { left: 40%; }
+      58% { left: 60%; }
+      78% { left: 80%; }
+      96% { left: 92%; opacity: 1; }
+      100% { left: 92%; opacity: .35; }
+    }
+    @keyframes floatY {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+    @keyframes blinkOpen {
+      0%, 40%, 100% { transform: scaleY(1); }
+      45% { transform: scaleY(.15); }
+      50% { transform: scaleY(1); }
+    }
+    @keyframes docIn {
+      from { transform: translateY(10px); opacity: 0; }
+      to { transform: none; opacity: 1; }
+    }
+    @keyframes clickPop {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.18); }
+      100% { transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <header class="head">
+      <div>
+        <p class="eyebrow">Engagement journey</p>
+        <h1>
+          Mail<span class="g">I</span><span class="y">n</span><span class="s">s</span><span class="b">ider</span>
+          · mailbox to signal
+        </h1>
+      </div>
+      <p class="sub">Illustrator motion of the complete path: send, open, document view, and link click.</p>
+    </header>
+
+    <div class="canvas">
+      <div class="artboard">
+        <div class="blob a"></div>
+        <div class="blob b"></div>
+        <div class="blob c"></div>
+
+        <div class="path"><div class="path-fill"></div></div>
+        <div class="packet" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M4 6h16v12H4V6zm0 0l8 6 8-6"/></svg>
+        </div>
+
+        <div class="steps">
+          <!-- 1 SEND -->
+          <div class="step s1" style="--accent:#0b57d0">
+            <div class="ring"></div>
+            <div class="card">
+              <span class="badge">01 · Send</span>
+              <div class="illus">
+                <svg viewBox="0 0 120 96" class="fly">
+                  <rect x="18" y="28" width="72" height="48" rx="8" fill="#e8f0fe" stroke="#0b57d0" stroke-width="2"/>
+                  <path d="M18 36l36 22 36-22" fill="none" stroke="#0b57d0" stroke-width="2.5" stroke-linecap="round"/>
+                  <circle cx="92" cy="24" r="14" fill="#0b57d0"/>
+                  <path d="M86 24h10M92 18v12" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
+                  <path d="M78 70l28-18" stroke="#4285f4" stroke-width="2" stroke-dasharray="3 3" opacity=".7"/>
+                </svg>
+              </div>
+              <p class="label">Mailbox</p>
+              <p class="title">Send via Gmail</p>
+              <p class="hint">Personal note leaves your connected account.</p>
+            </div>
+          </div>
+
+          <!-- 2 OPEN -->
+          <div class="step s2" style="--accent:#34a853">
+            <div class="ring"></div>
+            <div class="card">
+              <span class="badge">02 · Opened</span>
+              <div class="illus">
+                <svg viewBox="0 0 120 96">
+                  <ellipse cx="60" cy="48" rx="38" ry="24" fill="#e6f4ea" stroke="#34a853" stroke-width="2"/>
+                  <circle cx="60" cy="48" r="14" fill="#fff" stroke="#34a853" stroke-width="2" class="blink" style="transform-origin:60px 48px"/>
+                  <circle cx="60" cy="48" r="6" fill="#34a853"/>
+                  <path d="M28 22c8-6 20-6 28 0" fill="none" stroke="#34a853" stroke-width="2" stroke-linecap="round" opacity=".45"/>
+                </svg>
+              </div>
+              <p class="label">Signal</p>
+              <p class="title">Open</p>
+              <p class="hint">Recorded when the message is opened.</p>
+            </div>
+          </div>
+
+          <!-- 3 DOC VIEW -->
+          <div class="step s3" style="--accent:#ea4335">
+            <div class="ring"></div>
+            <div class="card">
+              <span class="badge">03 · Docs</span>
+              <div class="illus">
+                <svg viewBox="0 0 120 96" class="docSlide">
+                  <rect x="34" y="14" width="52" height="68" rx="6" fill="#fff" stroke="#ea4335" stroke-width="2"/>
+                  <rect x="42" y="26" width="36" height="4" rx="2" fill="#fce8e6"/>
+                  <rect x="42" y="36" width="28" height="4" rx="2" fill="#fce8e6"/>
+                  <rect x="42" y="46" width="32" height="4" rx="2" fill="#fce8e6"/>
+                  <rect x="42" y="56" width="20" height="4" rx="2" fill="#ea4335" opacity=".55"/>
+                  <circle cx="86" cy="70" r="16" fill="#ea4335"/>
+                  <path d="M80 70h12M86 64v12" stroke="#fff" stroke-width="2.2" stroke-linecap="round" transform="rotate(45 86 70)"/>
+                </svg>
+              </div>
+              <p class="label">Attachment</p>
+              <p class="title">View document</p>
+              <p class="hint">Hosted PDF viewer records who opened it.</p>
+            </div>
+          </div>
+
+          <!-- 4 LINK CLICK -->
+          <div class="step s4" style="--accent:#fbbc04">
+            <div class="ring"></div>
+            <div class="card">
+              <span class="badge">04 · Click</span>
+              <div class="illus">
+                <svg viewBox="0 0 120 96" class="clickRipple">
+                  <rect x="22" y="30" width="76" height="36" rx="10" fill="#fef7e0" stroke="#f9ab00" stroke-width="2"/>
+                  <path d="M34 48h28" stroke="#f9ab00" stroke-width="3" stroke-linecap="round"/>
+                  <circle cx="78" cy="48" r="8" fill="none" stroke="#f9ab00" stroke-width="2.5"/>
+                  <path d="M84 54l14 16" stroke="#202124" stroke-width="3" stroke-linecap="round"/>
+                  <circle cx="92" cy="70" r="10" fill="none" stroke="#fbbc04" stroke-width="2" opacity=".5"/>
+                </svg>
+              </div>
+              <p class="label">Tracked URL</p>
+              <p class="title">Link click</p>
+              <p class="hint">Redirect hop stamps interest with a timestamp.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <span class="chip"><i style="background:#0b57d0"></i>Send</span>
+      <span class="chip"><i style="background:#34a853"></i>Open</span>
+      <span class="chip"><i style="background:#ea4335"></i>Document view</span>
+      <span class="chip"><i style="background:#fbbc04"></i>Link click</span>
+    </div>
+  </div>
+</body>
+</html>
