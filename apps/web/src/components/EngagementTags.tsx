@@ -8,12 +8,12 @@ type Tag = {
   icon: typeof Eye
 }
 
-export function engagementTags(item: MessageSummary): Tag[] {
+export function engagementTags(item: MessageSummary, short = false): Tag[] {
   if (item.send_status === "draft") {
     return [{ key: "draft", label: "Draft", tone: "draft", icon: FileEdit }]
   }
   if (item.send_status === "failed" || item.send_status === "needs_review") {
-    return [{ key: "fail", label: item.send_status === "failed" ? "Failed" : "Needs review", tone: "fail", icon: AlertCircle }]
+    return [{ key: "fail", label: item.send_status === "failed" ? "Failed" : short ? "Review" : "Needs review", tone: "fail", icon: AlertCircle }]
   }
   if (item.send_status === "queued" || item.send_status === "sending") {
     return [{ key: "queue", label: item.send_status === "sending" ? "Sending" : "Queued", tone: "queue", icon: Send }]
@@ -32,7 +32,7 @@ export function engagementTags(item: MessageSummary): Tag[] {
   if (e.link_clicks > 0) {
     tags.push({
       key: "link",
-      label: e.link_clicks > 1 ? `Link ×${e.link_clicks}` : "Link viewed",
+      label: e.link_clicks > 1 ? `Link ×${e.link_clicks}` : short ? "Link" : "Link viewed",
       tone: "link",
       icon: Link2,
     })
@@ -40,12 +40,12 @@ export function engagementTags(item: MessageSummary): Tag[] {
   if (e.document_views > 0) {
     tags.push({
       key: "file",
-      label: e.document_views > 1 ? `File ×${e.document_views}` : "File viewed",
+      label: e.document_views > 1 ? `File ×${e.document_views}` : short ? "File" : "File viewed",
       tone: "file",
       icon: FileText,
     })
   }
-  if (tags.length === 0) {
+  if (tags.length === 0 && !short) {
     tags.push({ key: "sent", label: "Sent", tone: "sent", icon: Send })
   }
 
@@ -89,14 +89,16 @@ const TONE: Record<Tag["tone"], string> = {
 }
 
 export function EngagementTags({ item, dense = false }: { item: MessageSummary; dense?: boolean }) {
-  const tags = engagementTags(item)
+  const tags = engagementTags(item, dense)
+  if (!tags.length) return null
   return (
     <span className={`mi-tag-row ${dense ? "mi-tag-row-dense" : ""}`}>
       {tags.map((tag) => {
         const Icon = tag.icon
         return (
           <span key={tag.key} className={TONE[tag.tone]} title={tag.label}>
-            <Icon size={dense ? 11 : 12} aria-hidden />
+            <i className="mi-tag-mark" aria-hidden />
+            <Icon size={dense ? 10 : 12} aria-hidden />
             {tag.label}
           </span>
         )

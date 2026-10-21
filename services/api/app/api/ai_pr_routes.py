@@ -43,6 +43,10 @@ class ProfileIn(BaseModel):
     email_signature: str = Field(default="", max_length=2000)
 
 
+class SignatureIn(BaseModel):
+    email_signature: str = Field(default="", max_length=2000)
+
+
 class DocIn(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)
     content_text: str = Field(..., min_length=1, max_length=200_000)
@@ -101,6 +105,17 @@ def put_profile(payload: ProfileIn, ctx: Ctx = Depends(get_ctx)):
     row = get_or_create_profile(ctx.db, ctx.workspace.id)
     for field, value in payload.model_dump().items():
         setattr(row, field, (value or "").strip())
+    row.updated_at = utcnow()
+    ctx.db.commit()
+    ctx.db.refresh(row)
+    return {"profile": profile_payload(row)}
+
+
+@router.patch("/profile/signature")
+def patch_signature(payload: SignatureIn, ctx: Ctx = Depends(get_ctx)):
+    ctx.require("member")
+    row = get_or_create_profile(ctx.db, ctx.workspace.id)
+    row.email_signature = (payload.email_signature or "").strip()
     row.updated_at = utcnow()
     ctx.db.commit()
     ctx.db.refresh(row)

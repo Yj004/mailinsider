@@ -698,3 +698,181 @@ def test_templates_sheet_import_campaign_and_unsubscribe(client):
     )
     assert blocked.status_code == 400
     assert blocked.json()["error"]["code"] == "all_suppressed"
+
+
+def test_waitlist_signup_and_list(client):
+    created = client.post(
+        "/api/v1/public/waitlist",
+        json={
+            "name": "Priya Shah",
+            "company_name": "Northwind",
+            "email": "priya@northwind.example",
+            "monthly_sends": 1000,
+            "willing_to_pay": "$29 / month",
+        },
+    )
+    assert created.status_code == 200, created.text
+    again = client.post(
+        "/api/v1/public/waitlist",
+        json={
+            "name": "Priya S.",
+            "company_name": "Northwind",
+            "email": "priya@northwind.example",
+            "monthly_sends": 2500,
+            "willing_to_pay": "$49 / month",
+        },
+    )
+    assert again.status_code == 200, again.text
+    bot = client.post(
+        "/api/v1/public/waitlist",
+        json={
+            "name": "Bot",
+            "email": "bot@spam.example",
+            "monthly_sends": 10,
+            "willing_to_pay": "$1",
+            "website": "http://spam.example",
+        },
+    )
+    assert bot.status_code == 200
+    owner = register(client)
+    listed = client.get("/api/v1/waitlist", headers=headers(owner))
+    assert listed.status_code == 200, listed.text
+    emails = [row["email"] for row in listed.json()["signups"]]
+    assert "priya@northwind.example" in emails
+    assert "bot@spam.example" not in emails
+    priya = next(row for row in listed.json()["signups"] if row["email"] == "priya@northwind.example")
+    assert priya["monthly_sends"] == 2500
+    assert priya["willing_to_pay"] == "$49 / month"
+
+
+def test_preview_lock_blocks_non_owner(client, monkeypatch):
+    from app.core.config import get_settings
+
+    owner = register(client, email="work.yashjeet@gmail.com", workspace="Owner")
+    outsider = register(client, email="leo@brightpath.example", workspace="Brightpath")
+    monkeypatch.setenv("TESTING", "0")
+    monkeypatch.setenv("ALLOW_PUBLIC_SIGNUP", "false")
+    monkeypatch.setenv("OWNER_EMAIL", "work.yashjeet@gmail.com")
+    get_settings.cache_clear()
+    try:
+        denied = client.post(
+            "/api/v1/auth/login",
+            json={"email": "leo@brightpath.example", "password": "correct-horse"},
+        )
+        assert denied.status_code == 403
+        assert denied.json()["error"]["code"] == "waitlist_only"
+        allowed = client.post(
+            "/api/v1/auth/login",
+            json={"email": "work.yashjeet@gmail.com", "password": "correct-horse"},
+        )
+        assert allowed.status_code == 200, allowed.text
+        blocked_me = client.get("/api/v1/auth/me", headers=headers(outsider))
+        assert blocked_me.status_code == 403
+        blocked_ws = client.post(
+            "/api/v1/workspaces",
+            headers=headers(outsider),
+            json={"name": "Should fail", "open_tracking_default": True, "link_tracking_default": True},
+        )
+        assert blocked_ws.status_code == 403
+        ok_ws = client.post(
+            "/api/v1/workspaces",
+            headers=headers(owner),
+            json={"name": "Second workspace", "open_tracking_default": True, "link_tracking_default": True},
+        )
+        assert ok_ws.status_code == 200, ok_ws.text
+        blocked_reg = client.post(
+            "/api/v1/auth/register",
+            json={
+                "email": "new@example.com",
+                "password": "correct-horse",
+                "display_name": "New",
+                "workspace_name": "Nope",
+                "open_tracking_default": True,
+                "link_tracking_default": True,
+            },
+        )
+        assert blocked_reg.status_code == 403
+    finally:
+        monkeypatch.setenv("TESTING", "1")
+        get_settings.cache_clear()
+
+
+def test_hide_message_from_inbox(client):
+    owner = register(client)
+    created = client.post(
+        "/api/v1/messages",
+        headers=headers(owner),
+        json={
+            "to": [{"email": "aisha@northwind.example"}],
+            "subject": "Hide me",
+            "body_text": "Hello",
+            "send": False,
+        },
+    )
+    assert created.status_code == 200, created.text
+    message_id = created.json()["id"]
+    inbox = client.get("/api/v1/messages", headers=headers(owner))
+    assert any(item["id"] == message_id for item in inbox.json()["items"])
+    hidden = client.post(
+        f"/api/v1/messages/{message_id}/hide",
+        headers=headers(owner),
+        json={"hidden": True},
+    )
+    assert hidden.status_code == 200, hidden.text
+    assert hidden.json()["hidden"] is True
+    after = client.get("/api/v1/messages", headers=headers(owner))
+    assert all(item["id"] != message_id for item in after.json()["items"])
+    parked = client.get("/api/v1/messages?hidden=true", headers=headers(owner))
+    assert any(item["id"] == message_id for item in parked.json()["items"])
+    shown = client.post(
+        f"/api/v1/messages/{message_id}/hide",
+        headers=headers(owner),
+        json={"hidden": False},
+    )
+    assert shown.status_code == 200
+    assert shown.json()["hidden"] is False
+    restored = client.get("/api/v1/messages", headers=headers(owner))
+    assert any(item["id"] == message_id for item in restored.json()["items"])
+
+
+def test_compose_can_skip_or_override_signature(client):
+    owner = register(client)
+    client.post("/api/v1/integrations/gmail/demo", headers=headers(owner))
+    skipped = client.post(
+        "/api/v1/messages",
+        headers=headers(owner),
+        json={
+            "to": [{"email": "aisha@northwind.example"}],
+            "subject": "No signature",
+            "body_text": "Hello without a footer.",
+            "send": True,
+            "include_signature": False,
+        },
+    )
+    assert skipped.status_code == 200, skipped.text
+    skipped_html = client.get(
+        f"/api/v1/messages/{skipped.json()['id']}/recipients/{skipped.json()['recipients'][0]['id']}/preview",
+        headers=headers(owner),
+    ).json()["html"]
+    assert "yashjeet.space" not in skipped_html.lower()
+    assert "github.com/yj004" not in skipped_html.lower()
+    custom = client.post(
+        "/api/v1/messages",
+        headers=headers(owner),
+        json={
+            "to": [{"email": "aisha@northwind.example"}],
+            "subject": "Custom signature",
+            "body_text": "Hello with a custom footer.",
+            "send": True,
+            "include_signature": True,
+            "signature_text": "Ada Lovelace\nLabs: https://example.com/ada",
+        },
+    )
+    assert custom.status_code == 200, custom.text
+    custom_html = client.get(
+        f"/api/v1/messages/{custom.json()['id']}/recipients/{custom.json()['recipients'][0]['id']}/preview",
+        headers=headers(owner),
+    ).json()["html"]
+    assert "Ada Lovelace" in custom_html
+    assert "example.com/ada" in custom_html
+    assert "yashjeet.space" not in custom_html.lower()

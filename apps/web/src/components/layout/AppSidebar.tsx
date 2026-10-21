@@ -5,6 +5,7 @@ import {
   BookOpen,
   ChevronDown,
   Clock,
+  EyeOff,
   FileEdit,
   FileText,
   Files,
@@ -18,6 +19,7 @@ import {
   Tags,
   Unplug,
   Users,
+  ClipboardList,
 } from "lucide-react"
 import { api } from "../../api"
 import { useAuth } from "../../auth"
@@ -25,7 +27,7 @@ import { useCompose } from "../../compose"
 import type { ContactRecord, Overview } from "../../types"
 import { canSend } from "../../types"
 
-type FolderId = "sent" | "drafts" | "attention" | "failed" | "all"
+type FolderId = "sent" | "drafts" | "attention" | "failed" | "all" | "hidden"
 
 const FOLDERS: { id: FolderId; label: string; icon: typeof Inbox }[] = [
   { id: "sent", label: "Sent", icon: Send },
@@ -33,6 +35,7 @@ const FOLDERS: { id: FolderId; label: string; icon: typeof Inbox }[] = [
   { id: "attention", label: "Unopened", icon: Inbox },
   { id: "failed", label: "Failed", icon: AlertCircle },
   { id: "all", label: "All mail", icon: Mail },
+  { id: "hidden", label: "Hidden", icon: EyeOff },
 ]
 
 export function AppSidebar({
@@ -135,7 +138,7 @@ export function AppSidebar({
               <ChevronDown size={16} aria-hidden />
               More
             </summary>
-            <p className="gmail-more-note">Starred, Snoozed, Archive, Spam, and Trash need Gmail inbox sync (not enabled).</p>
+            <p className="gmail-more-note">Starred, Snoozed, Spam, and Trash need Gmail inbox sync (not enabled). Hide a conversation from Mail to move it to Hidden.</p>
           </details>
         ) : null}
       </nav>
@@ -173,6 +176,10 @@ export function AppSidebar({
             <NavLink to="/app/insights" className={({ isActive }) => `gmail-rail-item ${isActive ? "is-active" : ""}`} onClick={onNavigate}>
               <LineChart size={20} strokeWidth={1.75} aria-hidden />
               <span className="flex-1">Insights</span>
+            </NavLink>
+            <NavLink to="/app/waitlist" className={({ isActive }) => `gmail-rail-item ${isActive ? "is-active" : ""}`} onClick={onNavigate}>
+              <ClipboardList size={20} strokeWidth={1.75} aria-hidden />
+              <span className="flex-1">Waitlist</span>
             </NavLink>
             <NavLink to="/app/integrations" className={({ isActive }) => `gmail-rail-item ${isActive ? "is-active" : ""}`} onClick={onNavigate}>
               <Unplug size={20} strokeWidth={1.75} aria-hidden />

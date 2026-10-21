@@ -4,12 +4,14 @@ import type { ReactNode } from "react"
 export function WorkspacePage({
   title,
   subtitle,
+  kicker = "Workspace",
   actions,
   toolbar,
   children,
 }: {
   title: string
   subtitle: string
+  kicker?: string
   actions?: ReactNode
   toolbar?: ReactNode
   children: ReactNode
@@ -18,7 +20,7 @@ export function WorkspacePage({
     <div className="ws-page">
       <header className="ws-page-head">
         <div className="ws-page-copy">
-          <p className="ws-kicker">Workspace</p>
+          <p className="ws-kicker">{kicker}</p>
           <h1>{title}</h1>
           <p className="ws-sub">{subtitle}</p>
         </div>

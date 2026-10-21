@@ -61,6 +61,9 @@ export function ComposeModal({ draft, onClose }: { draft: ComposeDraft | null; o
   const [uploading, setUploading] = useState(false)
   const [expanded, setExpanded] = useState(false)
   const [showMore, setShowMore] = useState(false)
+  const [includeSignature, setIncludeSignature] = useState(true)
+  const [signatureText, setSignatureText] = useState(DEFAULT_SIGNATURE)
+  const [savingSignature, setSavingSignature] = useState(false)
   const followup = draft?.followup || null
   const draftKey = `${draft?.followup || ""}|${draft?.to || ""}|${draft?.subject || ""}|${draft?.body || ""}`
 
@@ -75,6 +78,7 @@ export function ComposeModal({ draft, onClose }: { draft: ComposeDraft | null; o
     setConfirming(false)
     setShowMore(false)
     setExpanded(false)
+    setIncludeSignature(true)
 
     const toParam = draft?.to
     if (toParam) {
@@ -99,6 +103,12 @@ export function ComposeModal({ draft, onClose }: { draft: ComposeDraft | null; o
       setIncludeSheet(data.connections.some((item) => item.status === "connected" && (item.sheet_attached || item.is_demo)))
     })
     api<Overview>("/api/v1/analytics/overview").then((data) => setQuota(data.quota))
+    api<{ profile?: { email_signature?: string } }>("/api/v1/ai/pr")
+      .then((data) => {
+        const next = (data.profile?.email_signature || "").trim()
+        if (next) setSignatureText(next)
+      })
+      .catch(() => undefined)
   }, [workspaceId])
 
   useEffect(() => {
@@ -120,8 +130,15 @@ export function ComposeModal({ draft, onClose }: { draft: ComposeDraft | null; o
   )
   const multipleTo = to.length > 1
   const preview = useMemo(
-    () => renderPreview(body, { documentName: selectedDocument?.filename, openTracking, linkTracking }),
-    [body, selectedDocument?.filename, openTracking, linkTracking],
+    () =>
+      renderPreview(body, {
+        documentName: selectedDocument?.filename,
+        openTracking,
+        linkTracking,
+        includeSignature,
+        signatureText,
+      }),
+    [body, selectedDocument?.filename, openTracking, linkTracking, includeSignature, signatureText],
   )
 
   async function uploadDocument(file: File | undefined) {
@@ -157,6 +174,8 @@ export function ComposeModal({ draft, onClose }: { draft: ComposeDraft | null; o
           document_id: documentId || null,
           attach_pdf: attachPdf,
           include_sheet_link: includeSheet,
+          include_signature: includeSignature,
+          signature_text: includeSignature ? signatureText : "",
           tracking: { open_pixel: openTracking, link_clicks: linkTracking },
           parent_message_id: followup || null,
         }),
@@ -181,7 +200,23 @@ export function ComposeModal({ draft, onClose }: { draft: ComposeDraft | null; o
 
   function applyAi(next: { subject?: string; body?: string }) {
     if (typeof next.subject === "string") setSubject(next.subject)
-    if (typeof next.body === "string") setBody(next.body)
+    if (typeof next.body === "string") setBody(stripTrailingSignOff(next.body))
+  }
+
+  async function saveSignatureDefault() {
+    if (savingSignature) return
+    setSavingSignature(true)
+    try {
+      await api("/api/v1/ai/pr/profile/signature", {
+        method: "PATCH",
+        body: JSON.stringify({ email_signature: signatureText }),
+      })
+      toast("Default signature saved.")
+    } catch (err) {
+      toast(err instanceof ApiError ? err.message : "Could not save signature.", "bad")
+    } finally {
+      setSavingSignature(false)
+    }
   }
 
   return (
@@ -200,6 +235,8 @@ export function ComposeModal({ draft, onClose }: { draft: ComposeDraft | null; o
         fromEmail={active?.google_account_email}
         hasAttachment={Boolean(documentId)}
         attachmentName={selectedDocument?.filename}
+        includeSignature={includeSignature}
+        signatureText={signatureText}
         onApply={applyAi}
       >
         {({ pill, toolbar, check }) => (
@@ -286,6 +323,42 @@ export function ComposeModal({ draft, onClose }: { draft: ComposeDraft | null; o
             </div>
 
             {check}
+
+            <div className="gm-compose-sig">
+              <label className="check">
+                <input
+                  type="checkbox"
+                  checked={includeSignature}
+                  onChange={(event) => setIncludeSignature(event.target.checked)}
+                />
+                <span>Include signature</span>
+              </label>
+              {includeSignature ? (
+                <>
+                  <textarea
+                    className="gm-compose-sig-text"
+                    value={signatureText}
+                    onChange={(event) => setSignatureText(event.target.value)}
+                    rows={5}
+                    aria-label="Signature"
+                    placeholder={DEFAULT_SIGNATURE}
+                  />
+                  <div className="gm-compose-sig-actions">
+                    <button
+                      type="button"
+                      className="btn small ghost"
+                      disabled={busy || savingSignature || !signatureText.trim()}
+                      onClick={() => void saveSignatureDefault()}
+                    >
+                      {savingSignature ? "Saving…" : "Save as default"}
+                    </button>
+                    <span className="hint">Edit for this email, or save for future sends.</span>
+                  </div>
+                </>
+              ) : (
+                <p className="hint">This send will go out without a signature.</p>
+              )}
+            </div>
 
             <footer className="gm-compose-toolbar">
               <div className="gm-compose-toolbar-left">
@@ -461,7 +534,7 @@ export function ComposeModal({ draft, onClose }: { draft: ComposeDraft | null; o
             {openTracking ? "Open tracking is on. " : "Open tracking is off. "}
             {linkTracking ? "Link tracking is on. " : "Link tracking is off. "}
             {documentId ? "A document viewer link is included. " : ""}
-            Your signature is appended automatically.
+            {includeSignature ? "Your signature will be appended." : "No signature will be added."}
             {attachPdf ? " The PDF is attached." : ""}
             {includeSheet ? " The workspace sheet link is included." : ""}
           </p>
@@ -569,6 +642,16 @@ function RecipientField({
   )
 }
 
+const DEFAULT_SIGNATURE = `Yashjeet Singh
+Portfolio: https://yashjeet.space
+GitHub: https://github.com/yj004
+LinkedIn: https://www.linkedin.com/in/yashjeet-singh/
+Mob: 9729840783`
+
+function stripTrailingSignOff(text: string) {
+  return text.replace(/\n*(?:best regards|regards|best|thanks|thank you|sincerely),?\s*\n+[\s\S]*$/i, "").trimEnd()
+}
+
 function signatureStartIndex(value: string) {
   const markers = ["Portfolio: https://yashjeet.space", "GitHub: https://github.com/yj004", "yashjeet.space"]
   let best = -1
@@ -611,7 +694,13 @@ function wrapSelection(value: string) {
 
 function renderPreview(
   text: string,
-  options: { documentName?: string; openTracking: boolean; linkTracking: boolean },
+  options: {
+    documentName?: string
+    openTracking: boolean
+    linkTracking: boolean
+    includeSignature?: boolean
+    signatureText?: string
+  },
 ) {
   const escaped = text
     .replace(/&/g, "&amp;")
@@ -627,10 +716,22 @@ function renderPreview(
   const document = options.documentName
     ? `<p><a href="#">View document: ${options.documentName.replace(/</g, "&lt;")}</a></p>`
     : ""
+  const signature =
+    options.includeSignature && options.signatureText?.trim()
+      ? `<p>—</p><p>${options.signatureText
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .split("\n")
+          .map((line) =>
+            line.replace(/(https:\/\/[^\s<]+)/g, '<a href="$1">$1</a>'),
+          )
+          .join("<br>")}</p>`
+      : ""
   const notes = `<p class="hint" style="font-size:12px;color:#666">Tracking on send: ${
     options.openTracking ? "opens" : "opens off"
   } · ${options.linkTracking ? "link tracking" : "link tracking off"}${
     options.documentName ? " · document views" : ""
   }</p>`
-  return `${body}${document}${notes}`
+  return `${body}${document}${signature}${notes}`
 }

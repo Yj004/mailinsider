@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { Bell, HelpCircle, Menu, Search, Settings, SlidersHorizontal } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
+import { BrandLockup } from "../BrandMark"
 import { api } from "../../api"
 import { useAuth } from "../../auth"
 import { relativeTime } from "../../labels"
@@ -43,10 +44,7 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
         <button type="button" className="gmail-icon-btn" onClick={onMenu} aria-label="Main menu">
           <Menu size={20} />
         </button>
-        <Link to="/app/mail" className="gmail-logo" aria-label="MailInsider">
-          <span className="gmail-logo-mark">M</span>
-          <span className="gmail-logo-text">MailInsider</span>
-        </Link>
+        <BrandLockup to="/app/mail" />
       </div>
 
       <form
@@ -111,7 +109,7 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
           {open === "account" ? (
             <div className="gmail-menu gmail-menu-account">
               <div className="px-2 py-2 text-center">
-                <div className="mx-auto mb-2 grid h-14 w-14 place-items-center rounded-full bg-[#7b1fa2] text-xl font-medium text-white">{initials}</div>
+                <div className="gmail-avatar mx-auto mb-2 h-14 w-14 text-xl">{initials}</div>
                 <div className="font-medium">{user?.display_name}</div>
                 <div className="text-xs text-[#5f6368]">{user?.email}</div>
                 <div className="mt-1 text-xs text-[#5f6368]">{connected.length ? "Gmail connected" : "Gmail not connected"}</div>

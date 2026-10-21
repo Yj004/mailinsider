@@ -19,6 +19,7 @@ from app.api.public_routes import router as public_router
 from app.api.sheet_routes import router as sheet_router
 from app.api.suppression_routes import router as suppression_router
 from app.api.template_routes import router as template_router
+from app.api.waitlist_routes import router as waitlist_router
 from app.api.workspace_routes import router as workspace_router
 from app.core.config import get_settings
 from app.core.database import SessionLocal, get_db, init_db
@@ -140,6 +141,7 @@ def create_app() -> FastAPI:
     app.include_router(template_router, prefix=api)
     app.include_router(campaign_router, prefix=api)
     app.include_router(suppression_router, prefix=api)
+    app.include_router(waitlist_router, prefix=api)
     app.include_router(public_router)
     app.add_middleware(
         CORSMiddleware,

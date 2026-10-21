@@ -2,6 +2,7 @@ import { FormEvent, useState } from "react"
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom"
 import { api, ApiError } from "../api"
 import { useAuth } from "../auth"
+import { BrandMark, BrandWord } from "../components/BrandMark"
 import type { SessionResponse } from "../types"
 
 export function LoginPage() {
@@ -27,28 +28,22 @@ export function LoginPage() {
   return (
     <AuthFrame>
       <h2>Sign in</h2>
-      <p className="quiet">Pick up the messages you are waiting on.</p>
-      <div className="banner" style={{ textAlign: "left" }}>
-        <strong>Demo film account</strong>
-        <div className="meta" style={{ marginTop: 4 }}>
-          demo@mailinsider.app · DemoFilm2026!
-        </div>
-      </div>
+      <p className="quiet">Private preview — only approved accounts can open a workspace.</p>
       <form className="stack" onSubmit={onSubmit}>
         <label className="field">
           <span>Email</span>
-          <input name="email" type="email" autoComplete="username" defaultValue="demo@mailinsider.app" required />
+          <input name="email" type="email" autoComplete="username" required />
         </label>
         <label className="field">
           <span>Password</span>
-          <input name="password" type="password" autoComplete="current-password" defaultValue="DemoFilm2026!" required />
+          <input name="password" type="password" autoComplete="current-password" required />
         </label>
         {error ? <p className="error-text">{error}</p> : null}
         <button className="btn primary full" type="submit">
           Sign in
         </button>
         <div className="inline-links">
-          <Link to="/signup">Create a workspace</Link>
+          <Link to="/waitlist">Join the waitlist</Link>
           <Link to="/forgot">Forgot password</Link>
         </div>
       </form>
@@ -212,12 +207,8 @@ function AuthFrame({ children }: { children: React.ReactNode }) {
       <section className="auth-story">
         <div>
           <div className="brand-lockup">
-            <svg className="mark" viewBox="0 0 32 32" aria-hidden="true">
-              <rect x="4" y="16" width="5" height="12" rx="1" fill="#aecbfa" />
-              <rect x="13" y="10" width="5" height="18" rx="1" fill="#669df6" />
-              <rect x="22" y="4" width="5" height="24" rx="1" fill="#0b57d0" />
-            </svg>
-            MailInsider
+            <BrandMark size={32} />
+            <BrandWord />
           </div>
           <h1>Know what happened after send.</h1>
           <p className="lede">Opens, link requests, and document views — on every conversation.</p>

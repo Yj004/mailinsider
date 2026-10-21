@@ -65,8 +65,8 @@ export function ProductVideoPage() {
           <button type="button" className="pv-btn ghost" onClick={toggleFullscreen}>
             Fullscreen
           </button>
-          <Link className="pv-btn" to="/signup">
-            Get started
+          <Link className="pv-btn" to="/waitlist">
+            Join waitlist
           </Link>
         </div>
       </div>

@@ -88,6 +88,8 @@ export function ComposeAiPanel({
   hasAttachment,
   attachmentName,
   threadSnippet,
+  includeSignature = true,
+  signatureText = "",
   onApply,
   children,
 }: {
@@ -98,6 +100,8 @@ export function ComposeAiPanel({
   hasAttachment?: boolean
   attachmentName?: string
   threadSnippet?: string
+  includeSignature?: boolean
+  signatureText?: string
   onApply: (next: { subject?: string; body?: string }) => void
   children: (slots: Slots) => ReactNode
 }) {
@@ -157,6 +161,8 @@ export function ComposeAiPanel({
           length: "short",
           recipient_email: recipientEmail || null,
           thread_snippet: threadSnippet || "",
+          include_signature: includeSignature,
+          signature_text: includeSignature ? signatureText : "",
         }),
       })
       if (action === "subject") onApply({ subject: data.subject })

@@ -66,6 +66,8 @@ def _ensure_sqlite_columns() -> None:
         "messages": {
             "attach_pdf": "BOOLEAN DEFAULT 0",
             "include_sheet_link": "BOOLEAN DEFAULT 0",
+            "include_signature": "BOOLEAN DEFAULT 1",
+            "signature_text": "TEXT DEFAULT ''",
             "campaign_id": "VARCHAR(36)",
             "template_id": "VARCHAR(36)",
             "parent_message_id": "VARCHAR(36)",
@@ -75,6 +77,7 @@ def _ensure_sqlite_columns() -> None:
             "conversation_status": "VARCHAR(32) DEFAULT 'active'",
             "gmail_thread_id": "VARCHAR(128)",
             "rfc_message_id": "VARCHAR(320)",
+            "hidden_at": "DATETIME",
         },
         "message_replies": {
             "rfc_message_id": "VARCHAR(320)",
@@ -119,5 +122,41 @@ def _ensure_postgres_columns() -> None:
         connection.execute(
             text(
                 "ALTER TABLE ai_profiles ADD COLUMN IF NOT EXISTS email_signature TEXT DEFAULT ''"
+            )
+        )
+        connection.execute(
+            text(
+                """
+                ALTER TABLE messages ADD COLUMN IF NOT EXISTS hidden_at timestamptz
+                """
+            )
+        )
+        connection.execute(
+            text(
+                """
+                ALTER TABLE messages ADD COLUMN IF NOT EXISTS include_signature BOOLEAN DEFAULT true
+                """
+            )
+        )
+        connection.execute(
+            text(
+                """
+                ALTER TABLE messages ADD COLUMN IF NOT EXISTS signature_text TEXT DEFAULT ''
+                """
+            )
+        )
+        connection.execute(
+            text(
+                """
+                CREATE TABLE IF NOT EXISTS waitlist_signups (
+                  id text PRIMARY KEY,
+                  name varchar(200) NOT NULL,
+                  company_name varchar(200),
+                  email varchar(320) NOT NULL UNIQUE,
+                  monthly_sends integer NOT NULL,
+                  willing_to_pay varchar(80) NOT NULL,
+                  created_at timestamptz NOT NULL DEFAULT now()
+                )
+                """
             )
         )

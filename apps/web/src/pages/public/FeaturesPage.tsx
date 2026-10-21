@@ -26,7 +26,7 @@ export function FeaturesPage() {
   ]
 
   return (
-    <div className="bg-[#f6f8fc] px-5 py-16">
+    <div className="bg-[#f5f5f7] px-5 py-16">
       <div className="mx-auto max-w-6xl">
         <p className="text-sm font-semibold uppercase tracking-wider text-[#1a73e8]/70">Features</p>
         <h1 className="font-display mt-2 text-4xl font-semibold text-ink">What MailInsider actually does</h1>
@@ -43,8 +43,8 @@ export function FeaturesPage() {
           ))}
         </div>
         <div className="mt-12">
-          <Link className="mi-btn mi-btn-primary" to="/signup">
-            Get started
+          <Link className="mi-btn mi-btn-primary" to="/waitlist">
+            Join the waitlist
           </Link>
         </div>
       </div>

@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import RedirectResponse
 
 from app.api.deps import Ctx, get_ctx
+from app.core.access import require_operator_email
 from app.core.config import get_settings
 from app.core.security import decrypt_secret, encrypt_secret, new_token
 from app.errors import AppError
@@ -54,6 +55,7 @@ def list_workspaces(ctx: Ctx = Depends(get_ctx)):
 
 @router.post("/workspaces")
 def create_workspace(payload: WorkspaceIn, ctx: Ctx = Depends(get_ctx)):
+    require_operator_email(ctx.user.email)
     workspace = Workspace(
         name=payload.name.strip(),
         created_by=ctx.user.id,
@@ -391,7 +393,10 @@ def _connection_payload(row: GmailConnection) -> dict:
 def list_connections(ctx: Ctx = Depends(get_ctx)):
     rows = (
         ctx.db.query(GmailConnection)
-        .filter(GmailConnection.workspace_id == ctx.workspace.id)
+        .filter(
+            GmailConnection.workspace_id == ctx.workspace.id,
+            GmailConnection.status.in_(("connected", "needs_reauth")),
+        )
         .order_by(GmailConnection.created_at.desc())
         .all()
     )
@@ -586,7 +591,7 @@ def disconnect(connection_id: str, ctx: Ctx = Depends(get_ctx)):
     )
     if row is None:
         raise AppError(404, "not_found", "That Gmail connection is not in this workspace.")
-    if not row.is_demo:
+    if not row.is_demo and row.encrypted_refresh_token:
         revoke_token(decrypt_secret(row.encrypted_refresh_token))
     row.encrypted_refresh_token = ""
     row.status = "disconnected"

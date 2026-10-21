@@ -161,6 +161,8 @@ class Message(Base):
     document_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     attach_pdf: Mapped[bool] = mapped_column(Boolean, default=False)
     include_sheet_link: Mapped[bool] = mapped_column(Boolean, default=False)
+    include_signature: Mapped[bool] = mapped_column(Boolean, default=True)
+    signature_text: Mapped[str] = mapped_column(Text, default="")
     campaign_id: Mapped[str | None] = mapped_column(
         ForeignKey("campaigns.id", ondelete="SET NULL"), nullable=True, index=True
     )
@@ -178,6 +180,7 @@ class Message(Base):
     gmail_thread_id: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
     rfc_message_id: Mapped[str | None] = mapped_column(String(320), nullable=True)
     sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    hidden_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
 
@@ -471,6 +474,18 @@ class ContactInquiry(Base):
     email: Mapped[str] = mapped_column(String(320))
     subject: Mapped[str] = mapped_column(String(300))
     message: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class WaitlistSignup(Base):
+    __tablename__ = "waitlist_signups"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    name: Mapped[str] = mapped_column(String(200))
+    company_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    email: Mapped[str] = mapped_column(String(320), unique=True, index=True)
+    monthly_sends: Mapped[int] = mapped_column(Integer)
+    willing_to_pay: Mapped[str] = mapped_column(String(80))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 

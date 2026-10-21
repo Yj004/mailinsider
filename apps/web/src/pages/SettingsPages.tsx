@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from "react"
 import { Link, useSearchParams } from "react-router-dom"
+import { Mail, Table2 } from "lucide-react"
 import { api, ApiError } from "../api"
 import { useAuth } from "../auth"
 import { SheetBrowser } from "../components/SheetBrowser"
@@ -31,6 +32,14 @@ export function IntegrationsPage() {
       .catch((err) => toast(err instanceof ApiError ? err.message : "Could not start Google sign-in.", "bad"))
   }
 
+  function startSheetsConnect() {
+    api<{ authorization_url: string }>("/api/v1/integrations/sheets/connect")
+      .then((result) => {
+        window.location.href = result.authorization_url
+      })
+      .catch((err) => toast(err instanceof ApiError ? err.message : "Could not start Google sign-in.", "bad"))
+  }
+
   useEffect(() => {
     load()
     const flag = params.get("gmail")
@@ -54,108 +63,204 @@ export function IntegrationsPage() {
     // workspaceId reloads the connection list when the team switches workspaces.
   }, [workspaceId])
 
-  const needsReconnect = Boolean(data?.needs_reconnect)
-  const activeSheet = (sheets?.connections || []).find((item) => item.status === "connected")
+  function visibleAccounts<T extends { id: string; google_account_email: string; status: string; is_demo: boolean }>(
+    items: T[],
+  ) {
+    const seen = new Set<string>()
+    const rows: T[] = []
+    for (const item of items) {
+      if (item.status !== "connected" && item.status !== "needs_reauth") continue
+      const key = `${item.is_demo ? "demo" : "live"}:${item.google_account_email}`
+      if (seen.has(key)) continue
+      seen.add(key)
+      rows.push(item)
+    }
+    return rows
+  }
+
+  const gmailRows = visibleAccounts(data?.connections || [])
+  const liveGmail = gmailRows.find((item) => item.status === "connected" && !item.is_demo)
+  const demoGmail = gmailRows.find((item) => item.status === "connected" && item.is_demo)
+  const gmailChip = liveGmail
+    ? { label: "Connected", ok: true }
+    : demoGmail
+      ? { label: "Demo", ok: true }
+      : gmailRows.some((item) => item.status === "needs_reauth")
+        ? { label: "Needs reconnect", ok: false }
+        : { label: "Not connected", ok: false }
+  const needsReconnect = Boolean(data?.needs_reconnect || gmailRows.some((item) => item.status === "needs_reauth"))
+  const sheetRows = visibleAccounts(sheets?.connections || [])
+  const activeSheet = sheetRows.find((item) => item.status === "connected")
+  const sheetChip = activeSheet?.sheet_attached
+    ? { label: "Attached", ok: true }
+    : activeSheet?.is_demo
+      ? { label: "Demo", ok: true }
+      : activeSheet
+        ? { label: "Account only", ok: true }
+        : sheetRows.some((item) => item.status === "needs_reauth")
+          ? { label: "Needs reconnect", ok: false }
+          : { label: "Not connected", ok: false }
+
+  function gmailLine(item: (typeof gmailRows)[number]) {
+    if (item.is_demo) return `Demo mailbox · ${relativeTime(item.updated_at)}`
+    if (item.status === "needs_reauth") return `Sign-in expired · ${relativeTime(item.updated_at)}`
+    if (item.can_sync_replies) return `Live · reply sync on · ${relativeTime(item.updated_at)}`
+    return `Live · reconnect for replies · ${relativeTime(item.updated_at)}`
+  }
+
+  function removeGmail(id: string) {
+    api(`/api/v1/integrations/gmail/connections/${id}`, { method: "DELETE" })
+      .then(() => {
+        toast("Disconnected.")
+        load()
+      })
+      .catch((err) => toast(err instanceof ApiError ? err.message : "Could not disconnect.", "bad"))
+  }
 
   return (
     <WorkspacePage
+      kicker="Connections"
       title="Integrations"
       subtitle="Connect Gmail for sending and replies, then attach any Google Sheet for logging and contact import."
     >
       {needsReconnect && canAdmin(membership?.role) ? (
-        <div className="banner" style={{ marginBottom: 16 }}>
-          <strong>Reconnect Gmail for replies.</strong> Your current connection can send mail but cannot read the
-          thread. Click Reconnect, then allow <em>See and download your mail</em> (and send).
-          <div className="actions" style={{ marginTop: 10, justifyContent: "flex-start" }}>
-            <button className="btn primary" type="button" onClick={startGmailConnect}>
-              Reconnect Gmail
-            </button>
+        <div className="int-notice">
+          <div>
+            <strong>Reconnect Gmail</strong>
+            Sign in again and allow sending plus mailbox read so recipient replies can appear in the thread.
+            <div className="int-actions" style={{ marginTop: 12 }}>
+              <button className="btn primary" type="button" onClick={startGmailConnect}>
+                Reconnect Gmail
+              </button>
+            </div>
           </div>
         </div>
       ) : null}
-      <WsCard title="Gmail" meta={data?.scope_reason}>
-        <div className="stack">
-        {(data?.connections || []).map((item) => (
-          <div key={item.id} className="row-between">
-            <div>
-              <strong>{item.google_account_email}</strong>
-              <div className="meta">
-                {item.status}
-                {item.is_demo ? " · Demo (no real Gmail send)" : ""}
-                {item.status === "connected" && !item.is_demo
-                  ? item.can_sync_replies
-                    ? " · Reply sync on"
-                    : " · Reply sync needs reconnect"
-                  : ""}{" "}
-                · {relativeTime(item.updated_at)}
-              </div>
+
+      <div className="int-grid">
+        <section className="int-tile">
+          <div className="int-tile-top">
+            <div className="int-icon is-mail" aria-hidden>
+              <Mail size={20} />
             </div>
-            {item.status === "connected" && canAdmin(membership?.role) ? (
-              <div className="actions" style={{ marginTop: 0 }}>
-                {item.needs_reconnect && data?.oauth_configured ? (
-                  <button className="btn primary small" type="button" onClick={startGmailConnect}>
-                    Reconnect
+            <div className="int-copy">
+              <h2>Gmail</h2>
+              <p>Send through your Google account and sync recipient replies in the same thread.</p>
+            </div>
+            <span className={`int-chip ${gmailChip.ok ? "is-ok" : "is-warn"}`}>{gmailChip.label}</span>
+          </div>
+          {gmailRows.length ? (
+            <div className="int-accounts">
+              {gmailRows.map((item) => (
+                <div key={item.id} className="int-account">
+                  <div>
+                    <strong>{item.google_account_email}</strong>
+                    <div className="meta">{gmailLine(item)}</div>
+                  </div>
+                  {canAdmin(membership?.role) ? (
+                    <div className="int-actions">
+                      {(item.status === "needs_reauth" || item.needs_reconnect) && data?.oauth_configured ? (
+                        <button className="btn primary small" type="button" onClick={startGmailConnect}>
+                          Reconnect
+                        </button>
+                      ) : null}
+                      <button className="btn danger small" type="button" onClick={() => removeGmail(item.id)}>
+                        Remove
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="int-empty">No Gmail account connected yet.</p>
+          )}
+          <div className="int-tile-foot">
+            {canAdmin(membership?.role) ? (
+              <div className="int-actions">
+                {data?.oauth_configured ? (
+                  <button className="btn primary" type="button" onClick={startGmailConnect}>
+                    {needsReconnect ? "Reconnect Gmail" : "Connect Gmail"}
                   </button>
-                ) : null}
-                <button
-                  className="btn danger small"
-                  onClick={() => {
-                    api(`/api/v1/integrations/gmail/connections/${item.id}`, { method: "DELETE" })
-                      .then(() => {
-                        toast("Disconnected. Sending is blocked until you connect again.")
-                        load()
-                      })
-                      .catch((err) => toast(err instanceof ApiError ? err.message : "Could not disconnect.", "bad"))
-                  }}
-                >
-                  Disconnect
-                </button>
+                ) : (
+                  <p className="quiet">Google OAuth is not configured for this environment.</p>
+                )}
               </div>
-            ) : null}
+            ) : (
+              <p className="quiet">Owners and admins connect Gmail. Members can send through a connection that already exists.</p>
+            )}
           </div>
-        ))}
-        {data?.connections.length === 0 ? <p className="quiet">No Gmail account connected.</p> : null}
-        {canAdmin(membership?.role) ? (
-          <div className="stack">
-            {!data?.oauth_configured ? (
-              <p className="quiet">Connect Gmail uses the Gmail API after GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are set.</p>
-            ) : null}
-          <div className="actions" style={{ justifyContent: "flex-start" }}>
-            {data?.oauth_configured ? (
-              <button className="btn primary" type="button" onClick={startGmailConnect}>
-                {needsReconnect ? "Reconnect Gmail" : "Connect Gmail"}
-              </button>
-            ) : null}
-            {data?.demo_allowed ? (
-              <button
-                className="btn"
-                type="button"
-                onClick={() => {
-                  api("/api/v1/integrations/gmail/demo", { method: "POST" })
-                    .then(() => {
-                      toast("Demo Gmail is connected. Sends are marked as demo.")
-                      load()
-                    })
-                    .catch((err) => toast(err instanceof ApiError ? err.message : "Could not start demo.", "bad"))
-                }}
-              >
-                Use demo Gmail
-              </button>
-            ) : null}
+        </section>
+
+        <section className="int-tile">
+          <div className="int-tile-top">
+            <div className="int-icon is-sheet" aria-hidden>
+              <Table2 size={20} />
+            </div>
+            <div className="int-copy">
+              <h2>Google Sheets</h2>
+              <p>Log sends and import contacts from any spreadsheet in the connected Drive.</p>
+            </div>
+            <span className={`int-chip ${sheetChip.ok ? "is-ok" : "is-warn"}`}>{sheetChip.label}</span>
           </div>
-          </div>
-        ) : (
-          <p className="quiet">Owners and admins connect Gmail. Members can send through a connection that already exists.</p>
-        )}
-        </div>
-      </WsCard>
-      <WsCard
-        title="Google Sheets"
-        meta={sheets?.scope_reason}
-        footer={
-          sheets?.recent_rows?.length ? (
+          {sheetRows.length ? (
+            <>
+              <div className="int-accounts">
+                {sheetRows.map((item) => (
+                  <div key={item.id} className="int-account">
+                    <div>
+                      <strong>{item.google_account_email}</strong>
+                      <div className="meta">
+                        {item.status === "needs_reauth"
+                          ? `Sign-in expired · ${relativeTime(item.updated_at)}`
+                          : item.sheet_attached
+                            ? `Attached · ${item.spreadsheet_title} · tab ${item.sheet_tab} · ${relativeTime(item.updated_at)}`
+                            : item.is_demo
+                              ? `Local demo log · ${relativeTime(item.updated_at)}`
+                              : `Account connected · pick a spreadsheet below · ${relativeTime(item.updated_at)}`}
+                      </div>
+                      {item.spreadsheet_url ? (
+                        <div className="meta">
+                          <a href={item.spreadsheet_url} target="_blank" rel="noreferrer">
+                            Open attached sheet
+                          </a>
+                        </div>
+                      ) : null}
+                    </div>
+                    {canAdmin(membership?.role) ? (
+                      <div className="int-actions">
+                        {item.status === "needs_reauth" && sheets?.oauth_configured ? (
+                          <button className="btn primary small" type="button" onClick={startSheetsConnect}>
+                            Reconnect
+                          </button>
+                        ) : null}
+                        <button
+                          className="btn danger small"
+                          type="button"
+                          onClick={() => {
+                            api(`/api/v1/integrations/sheets/connections/${item.id}`, { method: "DELETE" })
+                              .then(() => {
+                                toast("Google Sheets disconnected.")
+                                load()
+                              })
+                              .catch((err) => toast(err instanceof ApiError ? err.message : "Could not disconnect.", "bad"))
+                          }}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+              {activeSheet && !activeSheet.is_demo ? <SheetBrowser connection={activeSheet} onAttached={load} /> : null}
+            </>
+          ) : (
+            <p className="int-empty">No Google Sheet connected yet.</p>
+          )}
+          {sheets?.recent_rows?.length ? (
             <div>
-              <h3>Recent send-log rows</h3>
+              <h3 style={{ margin: "0 0 8px", fontSize: 13, color: "#6e6e73" }}>Recent send-log rows</h3>
               {sheets.recent_rows.map((item) => (
                 <p className="meta" key={item.id}>
                   {(item.row || []).join(" · ")}
@@ -163,92 +268,24 @@ export function IntegrationsPage() {
                 </p>
               ))}
             </div>
-          ) : null
-        }
-      >
-        {activeSheet ? (
-          <div className="stack gap-4">
-            <div className="row-between">
-              <div>
-                <strong>{activeSheet.google_account_email}</strong>
-                <div className="meta">
-                  {activeSheet.sheet_attached
-                    ? `Attached · ${activeSheet.spreadsheet_title} · tab ${activeSheet.sheet_tab}`
-                    : "Account connected · pick a spreadsheet below"}
-                  {activeSheet.is_demo ? " · Local demo log" : ""} · {relativeTime(activeSheet.updated_at)}
-                </div>
-                {activeSheet.spreadsheet_url ? (
-                  <div className="meta">
-                    <a href={activeSheet.spreadsheet_url} target="_blank" rel="noreferrer">
-                      Open attached sheet
-                    </a>
-                  </div>
-                ) : null}
-              </div>
-              {canAdmin(membership?.role) ? (
-                <button
-                  className="btn danger small"
-                  type="button"
-                  onClick={() => {
-                    api(`/api/v1/integrations/sheets/connections/${activeSheet.id}`, { method: "DELETE" })
-                      .then(() => {
-                        toast("Google Sheets disconnected.")
-                        load()
-                      })
-                      .catch((err) => toast(err instanceof ApiError ? err.message : "Could not disconnect.", "bad"))
-                  }}
-                >
-                  Disconnect
-                </button>
-              ) : null}
-            </div>
-            {!activeSheet.is_demo ? <SheetBrowser connection={activeSheet} onAttached={load} /> : null}
-          </div>
-        ) : (
-          <div className="stack">
-            <p className="quiet">No Google account connected for Sheets in this workspace.</p>
+          ) : null}
+          <div className="int-tile-foot">
             {canAdmin(membership?.role) ? (
-              <div className="actions" style={{ justifyContent: "flex-start" }}>
-                {!sheets?.oauth_configured ? (
-                  <p className="quiet">Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET, enable Sheets + Drive APIs, then connect.</p>
+              <div className="int-actions">
+                {sheets?.oauth_configured ? (
+                  <button className="btn primary" type="button" onClick={startSheetsConnect}>
+                    {sheetRows.some((item) => item.status === "needs_reauth") ? "Reconnect Google" : "Connect Google account"}
+                  </button>
                 ) : (
-                  <button
-                    className="btn primary"
-                    type="button"
-                    onClick={() => {
-                      api<{ authorization_url: string }>("/api/v1/integrations/sheets/connect", { method: "POST" })
-                        .then((result) => {
-                          window.location.href = result.authorization_url
-                        })
-                        .catch((err) => toast(err instanceof ApiError ? err.message : "Could not start Google sign-in.", "bad"))
-                    }}
-                  >
-                    Connect Google account
-                  </button>
+                  <p className="quiet">Google OAuth is not configured for this environment.</p>
                 )}
-                {sheets?.demo_allowed ? (
-                  <button
-                    className="btn"
-                    type="button"
-                    onClick={() => {
-                      api("/api/v1/integrations/sheets/demo", { method: "POST" })
-                        .then(() => {
-                          toast("Demo sheet log is on for this workspace.")
-                          load()
-                        })
-                        .catch((err) => toast(err instanceof ApiError ? err.message : "Could not start the demo log.", "bad"))
-                    }}
-                  >
-                    Use demo sheet log
-                  </button>
-                ) : null}
               </div>
             ) : (
               <p className="quiet">Owners and admins connect Sheets for this workspace.</p>
             )}
           </div>
-        )}
-      </WsCard>
+        </section>
+      </div>
     </WorkspacePage>
   )
 }

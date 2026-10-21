@@ -23,7 +23,7 @@ from app.models import (
     as_utc,
     utcnow,
 )
-from app.schemas import ConversationActionIn, MessageIn, RetryIn
+from app.schemas import ConversationActionIn, HideIn, MessageIn, RetryIn
 from app.services.messaging import (
     FOLLOW_UP_CADENCE_DAYS,
     queue_message,
@@ -158,6 +158,7 @@ def _summary(message: Message, recipients: list[MessageRecipient], events: list[
         "conversation_status": status,
         "follow_up_overdue": overdue,
         "follow_up_cadence_days": FOLLOW_UP_CADENCE_DAYS,
+        "hidden": message.hidden_at is not None,
     }
 
 
@@ -215,6 +216,9 @@ def _apply_content(ctx: Ctx, message: Message, payload: MessageIn) -> None:
     message.document_id = payload.document_id
     message.attach_pdf = payload.attach_pdf
     message.include_sheet_link = payload.include_sheet_link
+    message.include_signature = payload.include_signature
+    if payload.signature_text is not None:
+        message.signature_text = payload.signature_text.strip()
     if payload.document_id:
         document = (
             ctx.db.query(DocumentAsset)
@@ -299,8 +303,13 @@ def list_messages(
     order: str = "desc",
     start: str | None = Query(default=None, alias="from"),
     end: str | None = Query(default=None, alias="to"),
+    hidden: bool = Query(False),
 ):
     query = ctx.db.query(Message).filter(Message.workspace_id == ctx.workspace.id)
+    if hidden:
+        query = query.filter(Message.hidden_at.isnot(None))
+    else:
+        query = query.filter(Message.hidden_at.is_(None))
     if status:
         query = query.filter(Message.send_status == status)
     if attention:
@@ -549,6 +558,26 @@ def classify_conversation(message_id: str, payload: ConversationActionIn, ctx: C
             contact.pipeline_status = "replied"
     ctx.db.commit()
     return get_message(root.id, ctx)
+
+
+@router.post("/messages/{message_id}/hide")
+def hide_message(message_id: str, payload: HideIn, ctx: Ctx = Depends(get_ctx)):
+    ctx.require("member")
+    message = _owned(ctx, message_id)
+    root = root_message(ctx.db, message)
+    stamp = utcnow() if payload.hidden else None
+    family = (
+        ctx.db.query(Message)
+        .filter(
+            Message.workspace_id == ctx.workspace.id,
+            or_(Message.id == root.id, Message.parent_message_id == root.id),
+        )
+        .all()
+    )
+    for item in family:
+        item.hidden_at = stamp
+    ctx.db.commit()
+    return get_message(message.id, ctx)
 
 
 @router.patch("/messages/{message_id}")

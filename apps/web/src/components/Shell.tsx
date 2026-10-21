@@ -98,7 +98,7 @@ function ShellInner() {
         {mobileOpen ? (
           <div className="fixed inset-0 z-40 lg:hidden">
             <button type="button" className="absolute inset-0 border-0 bg-black/40" aria-label="Close navigation" onClick={() => setMobileOpen(false)} />
-            <div className="relative h-full w-[280px] bg-[#f6f8fc]">
+            <div className="relative h-full w-[280px] bg-[#f5f5f7]">
               <AppSidebar collapsed={false} onToggle={() => setMobileOpen(false)} onNavigate={() => setMobileOpen(false)} />
             </div>
           </div>

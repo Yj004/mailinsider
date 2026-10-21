@@ -236,6 +236,8 @@ async def generate_email(
     refine_instruction: str = "",
     recipient: dict[str, Any] | None = None,
     thread_snippet: str = "",
+    include_signature: bool = True,
+    signature_text: str = "",
     db: Session | None = None,
     workspace_id: str | None = None,
 ) -> dict:
@@ -280,7 +282,7 @@ async def generate_email(
     rag_block = ""
     rag_meta: dict[str, Any] = {}
     sender_name = ""
-    sender_signature = DEFAULT_SIGNATURE_TEXT
+    sender_signature = DEFAULT_SIGNATURE_TEXT if include_signature else ""
     if db is not None and workspace_id:
         query = " ".join(
             part
@@ -305,19 +307,22 @@ async def generate_email(
             rag_block = format_rag_for_prompt(rag_meta)
             profile = rag_meta.get("profile") or {}
             sender_name = str(profile.get("name") or "").strip()
-            sender_signature = normalize_signature(
-                profile.get("email_signature"),
-                fallback_name=sender_name,
-            )
+            if include_signature:
+                sender_signature = normalize_signature(
+                    signature_text.strip() or profile.get("email_signature"),
+                    fallback_name=sender_name,
+                )
         except Exception:
             rag_meta = {}
             rag_block = ""
+    if include_signature and signature_text.strip():
+        sender_signature = normalize_signature(signature_text, fallback_name=sender_name)
 
     about_sender = {
         "label": "ABOUT_THE_SENDER — facts about the person writing this email (first person). NOT the recipient.",
         "content": rag_block or None,
-        "sign_as": sender_signature or sender_name or None,
-        "email_signature": sender_signature,
+        "sign_as": (sender_signature or sender_name) if include_signature else None,
+        "email_signature": sender_signature if include_signature else None,
     }
 
     if action == "write":
@@ -344,6 +349,13 @@ async def generate_email(
                 "impressed by, particularly drawn to, aligns with my passion, 'notable achievements include'.",
                 "Never substitute Founding Engineer or any other title for TARGET_ROLE.",
             ]
+        if not include_signature:
+            writing_rules = [
+                rule
+                for rule in writing_rules
+                if "signature" not in rule.lower() and "best regards" not in rule.lower()
+            ]
+            writing_rules.append("Do not add a signature, phone, portfolio, or Best regards footer.")
         user = {
             "task": "write_new_email",
             "instruction": instruction or "Write a professional outreach email.",
@@ -475,8 +487,8 @@ async def generate_email(
     new_subject, new_body = _sanitize_draft(
         new_subject,
         new_body,
-        sender_name=sender_name,
-        signature=sender_signature,
+        sender_name=sender_name if include_signature else "",
+        signature=sender_signature if include_signature else "",
     )
     if job_application and target_role:
         new_subject, new_body = _enforce_role_title(new_subject, new_body, target_role)

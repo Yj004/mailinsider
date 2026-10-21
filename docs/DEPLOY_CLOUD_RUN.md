@@ -64,7 +64,9 @@ GOOGLE_REDIRECT_URI=${API_URL}/api/v1/integrations/gmail/callback,\
 GOOGLE_SHEETS_REDIRECT_URI=${API_URL}/api/v1/integrations/sheets/callback,\
 AI_PROVIDER=openai,\
 OPENAI_API_KEY=YOUR_OPENAI_KEY,\
-OPENAI_MODEL=gpt-4o-mini"
+OPENAI_MODEL=gpt-4o-mini,\
+OWNER_EMAIL=work.yashjeet@gmail.com,\
+ALLOW_PUBLIC_SIGNUP=false"
 ```
 
 Prefer **Secret Manager** for secrets instead of plain env:

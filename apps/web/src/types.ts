@@ -48,6 +48,7 @@ export type MessageSummary = {
   follow_up_cadence_days?: number
   thread_root_id?: string
   gmail_connection_id?: string | null
+  hidden?: boolean
 }
 
 export type Recipient = {

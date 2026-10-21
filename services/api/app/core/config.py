@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     testing: bool = False
     # When true, demo Gmail/Sheets connections work even if APP_ENV=production.
     allow_demo_connections: bool = False
+    # Private preview: only this email can sign in / create workspaces unless tests or ALLOW_PUBLIC_SIGNUP.
+    owner_email: str = "work.yashjeet@gmail.com"
+    allow_public_signup: bool = False
     database_url: str = f"sqlite:///{ROOT / 'data' / 'mailinsider.db'}"
     jwt_secret: str = "dev-only-change-me"
     jwt_expires_days: int = 14

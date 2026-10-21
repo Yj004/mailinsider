@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MailInsider — Logo reveal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #f5f8fd; }
+    :root {
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+      --ink: #1d1d1f;
+      --blue: #0071e3;
+    }
+    #stage {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse 70% 55% at 50% 42%, #ffffff 0%, #eef4fc 62%, #e4eef8 100%);
+      perspective: 1400px;
+    }
+    #stage:not(.play) * {
+      animation-play-state: paused !important;
+    }
+    .sweep {
+      position: absolute;
+      top: -20%;
+      left: -50%;
+      width: 70%;
+      height: 140%;
+      background: radial-gradient(ellipse, rgba(160, 210, 255, 0.34), transparent 62%);
+      animation: sweep 7s var(--ease) both;
+      pointer-events: none;
+    }
+    @keyframes sweep {
+      0% { transform: translateX(0); opacity: 0; }
+      10% { opacity: 1; }
+      100% { transform: translateX(145%); opacity: 0.18; }
+    }
+    .orbit {
+      position: absolute;
+      left: 50%;
+      top: 48%;
+      border: 1.5px solid rgba(10, 132, 255, 0.16);
+      border-radius: 50%;
+      pointer-events: none;
+      animation: orbitFade 3.1s var(--ease) both;
+    }
+    .orbit-a { width: 620px; height: 280px; margin: -140px 0 0 -310px; animation-name: orbitA; }
+    .orbit-b { width: 740px; height: 340px; margin: -170px 0 0 -370px; animation-name: orbitB; }
+    @keyframes orbitA {
+      0% { opacity: 0; transform: rotate(-18deg) scale(0.92); }
+      18% { opacity: 1; }
+      70% { opacity: 0.45; transform: rotate(12deg) scale(1); }
+      100% { opacity: 0; transform: rotate(22deg) scale(1.04); }
+    }
+    @keyframes orbitB {
+      0% { opacity: 0; transform: rotate(14deg) scale(1.06); }
+      22% { opacity: 0.7; }
+      100% { opacity: 0; transform: rotate(-10deg) scale(0.96); }
+    }
+    .lockup {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 36px;
+      animation: push 7s var(--ease) both;
+    }
+    @keyframes push {
+      0% { transform: scale(1.045); }
+      100% { transform: scale(1); }
+    }
+    .icon {
+      position: relative;
+      width: 228px;
+      height: 205px;
+      transform-style: preserve-3d;
+    }
+    .icon svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+    .shadow {
+      position: absolute;
+      left: 18%;
+      right: 8%;
+      bottom: -18px;
+      height: 28px;
+      background: radial-gradient(ellipse, rgba(10, 80, 180, 0.22), transparent 70%);
+      filter: blur(8px);
+      animation: shadowIn 1.4s 2.1s var(--ease) both;
+    }
+    @keyframes shadowIn {
+      from { opacity: 0; transform: scaleX(0.6); }
+      to { opacity: 1; transform: none; }
+    }
+    .glass { animation: glassIn 0.9s 5.05s var(--ease) both; }
+    @keyframes glassIn {
+      from { opacity: 0; transform: scale(0.92); }
+      to { opacity: 1; transform: none; }
+    }
+    .body { animation: pieceIn 1.15s 1.55s var(--ease) both; }
+    .flap { animation: pieceIn 1.15s 1.68s var(--ease) both; }
+    .fold { animation: pieceIn 1s 1.82s var(--ease) both; }
+    @keyframes pieceIn {
+      from { opacity: 0; transform: translate3d(-28px, -36px, 80px) rotateX(28deg) rotateZ(-16deg) scale(0.72); filter: blur(6px); }
+      to { opacity: 1; transform: none; filter: none; }
+    }
+    .ring { animation: ringIn 1.2s 1.78s var(--ease) both; }
+    @keyframes ringIn {
+      from { opacity: 0; transform: translate3d(64px, 28px, 40px) rotateZ(-70deg) scale(0.55); filter: blur(8px); }
+      to { opacity: 1; transform: none; filter: none; }
+    }
+    .shine {
+      position: absolute;
+      inset: -8%;
+      background: linear-gradient(115deg, transparent 38%, rgba(255,255,255,0.62) 50%, transparent 62%);
+      transform: translateX(-140%);
+      animation: shine 0.85s 5.18s var(--ease) both;
+      mix-blend-mode: overlay;
+      pointer-events: none;
+      border-radius: 28%;
+    }
+    @keyframes shine {
+      from { transform: translateX(-140%); }
+      to { transform: translateX(140%); }
+    }
+    .word {
+      display: flex;
+      align-items: baseline;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Inter, sans-serif;
+      font-weight: 700;
+      font-size: 92px;
+      letter-spacing: -0.045em;
+      line-height: 1;
+      white-space: nowrap;
+      animation: wordIn 1.65s 3.05s var(--ease) both;
+    }
+    .mail { color: var(--ink); }
+    .insider { color: var(--blue); letter-spacing: -0.05em; }
+    @keyframes wordIn {
+      from { clip-path: inset(0 100% 0 0); transform: translateX(-36px); filter: blur(10px); opacity: 0.2; }
+      to { clip-path: inset(0 0 0 0); transform: none; filter: none; opacity: 1; }
+    }
+    .debris {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+    .bit {
+      position: absolute;
+      left: 50%;
+      top: 48%;
+      animation-fill-mode: both;
+      animation-timing-function: var(--ease);
+    }
+    .bit-sq {
+      width: 86px; height: 86px; margin: -43px;
+      border-radius: 18px;
+      background: linear-gradient(145deg, #64d2ff, #0a84ff 55%, #0040dd);
+      animation: bitSq 2.55s 0.25s both;
+    }
+    .bit-dia {
+      width: 54px; height: 54px; margin: -27px;
+      background: linear-gradient(145deg, #9ae2ff, #0a7aff);
+      transform: rotate(32deg);
+      border-radius: 8px;
+      animation: bitDia 2.55s 0.18s both;
+    }
+    .bit-dot {
+      width: 18px; height: 18px; margin: -9px;
+      border-radius: 50%;
+      background: #0a84ff;
+      animation: bitDot 2.4s 0.3s both;
+    }
+    .bit-dot2 {
+      width: 12px; height: 12px; margin: -6px;
+      border-radius: 50%;
+      background: #64d2ff;
+      animation: bitDot2 2.5s 0.22s both;
+    }
+    .bit-tri {
+      width: 0; height: 0; margin: -16px 0 0 -18px;
+      border-left: 22px solid transparent;
+      border-right: 14px solid transparent;
+      border-bottom: 34px solid #2ea7ff;
+      filter: drop-shadow(0 8px 12px rgba(10,132,255,.2));
+      animation: bitTri 2.5s 0.28s both;
+    }
+    .bit-ring {
+      width: 72px; height: 72px; margin: -36px;
+      border-radius: 50%;
+      border: 18px solid #0a84ff;
+      animation: bitRing 2.6s 0.2s both;
+    }
+    @keyframes bitSq {
+      0% { opacity: 0; transform: translate(-210px, -80px) rotate(-24deg) scale(0.6); filter: blur(8px); }
+      28% { opacity: 1; filter: blur(2px); }
+      62% { opacity: 1; transform: translate(-40px, -18px) rotate(8deg) scale(1); filter: none; }
+      100% { opacity: 0; transform: translate(-8px, 4px) rotate(0deg) scale(0.4); }
+    }
+    @keyframes bitDia {
+      0% { opacity: 0; transform: translate(160px, -140px) rotate(48deg) scale(0.5); filter: blur(10px); }
+      30% { opacity: 1; }
+      100% { opacity: 0; transform: translate(12px, -8px) rotate(12deg) scale(0.3); }
+    }
+    @keyframes bitDot {
+      0% { opacity: 0; transform: translate(240px, 40px) scale(0.4); }
+      25% { opacity: 1; }
+      100% { opacity: 0; transform: translate(90px, 48px) scale(0.2); }
+    }
+    @keyframes bitDot2 {
+      0% { opacity: 0; transform: translate(-160px, 110px); }
+      30% { opacity: 0.9; }
+      100% { opacity: 0; transform: translate(-20px, 36px); }
+    }
+    @keyframes bitTri {
+      0% { opacity: 0; transform: translate(-280px, 20px) rotate(-50deg); filter: blur(12px); }
+      28% { opacity: 0.85; }
+      100% { opacity: 0; transform: translate(-70px, 8px) rotate(-12deg); }
+    }
+    @keyframes bitRing {
+      0% { opacity: 0; transform: translate(90px, 90px) rotate(40deg) scale(0.7); filter: blur(6px); }
+      32% { opacity: 1; }
+      100% { opacity: 0; transform: translate(78px, 52px) rotate(0deg) scale(0.55); }
+    }
+  </style>
+</head>
+<body>
+  <div id="stage">
+    <div class="sweep"></div>
+    <div class="orbit orbit-a"></div>
+    <div class="orbit orbit-b"></div>
+    <div class="debris">
+      <div class="bit bit-sq"></div>
+      <div class="bit bit-dia"></div>
+      <div class="bit bit-dot"></div>
+      <div class="bit bit-dot2"></div>
+      <div class="bit bit-tri"></div>
+      <div class="bit bit-ring"></div>
+    </div>
+    <div class="lockup">
+      <div class="icon">
+        <div class="shadow"></div>
+        <svg class="glass" viewBox="0 0 40 36">
+          <defs>
+            <linearGradient id="g" x1="2" y1="2" x2="22" y2="30" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#ffffff"/>
+              <stop offset="100%" stop-color="#e8eef8"/>
+            </linearGradient>
+          </defs>
+          <rect x="1.8" y="1.6" width="27.6" height="27.6" rx="7.8" fill="url(#g)"/>
+        </svg>
+        <svg class="body" viewBox="0 0 40 36">
+          <defs>
+            <linearGradient id="b" x1="8" y1="14" x2="26" y2="28" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#4db8ff"/>
+              <stop offset="55%" stop-color="#0a7aff"/>
+              <stop offset="100%" stop-color="#0037b8"/>
+            </linearGradient>
+          </defs>
+          <path fill="url(#b)" d="M7.15 13.35 16 20.15 24.85 13.35v9.05c0 1.22-1 2.22-2.22 2.22H9.37c-1.22 0-2.22-1-2.22-2.22Z"/>
+        </svg>
+        <svg class="flap" viewBox="0 0 40 36">
+          <defs>
+            <linearGradient id="f" x1="8" y1="6" x2="26" y2="20" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#9ae2ff"/>
+              <stop offset="42%" stop-color="#2ea7ff"/>
+              <stop offset="100%" stop-color="#0050d4"/>
+            </linearGradient>
+          </defs>
+          <path fill="url(#f)" d="M7.15 13.2 16 6.55c.52-.38 1.22-.38 1.74 0l8.11 6.65c.48.35.48.98 0 1.33L16.87 19.7c-.52.38-1.22.38-1.74 0L7.15 14.53c-.48-.35-.48-.98 0-1.33Z"/>
+        </svg>
+        <svg class="fold" viewBox="0 0 40 36">
+          <defs>
+            <linearGradient id="o" x1="6" y1="22" x2="20" y2="14" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#d7f2ff"/>
+              <stop offset="100%" stop-color="#7ecfff"/>
+            </linearGradient>
+          </defs>
+          <path fill="url(#o)" fill-opacity=".7" d="M7.15 21.9 15.4 15.55 9.05 24.62H9.37c-1.22 0-2.22-1-2.22-2.22Z"/>
+        </svg>
+        <svg class="ring" viewBox="0 0 40 36">
+          <defs>
+            <linearGradient id="d" x1="22" y1="20" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#5ac8fa"/>
+              <stop offset="48%" stop-color="#0a84ff"/>
+              <stop offset="100%" stop-color="#0040c8"/>
+            </linearGradient>
+          </defs>
+          <path fill="url(#d)" fill-rule="evenodd" d="M29.15 20.05a8.15 8.15 0 1 1 0 16.3 8.15 8.15 0 0 1 0-16.3Zm0 4.85a3.3 3.3 0 1 0 0 6.6 3.3 3.3 0 0 0 0-6.6Z"/>
+        </svg>
+        <div class="shine"></div>
+      </div>
+      <div class="word" aria-label="MailInsider">
+        <span class="mail">Mail</span><span class="insider">Insider</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

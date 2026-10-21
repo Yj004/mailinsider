@@ -18,10 +18,11 @@ from app.models import (
     OpenToken,
     TrackingLink,
     UnsubscribeToken,
+    WaitlistSignup,
     as_utc,
     utcnow,
 )
-from app.schemas import ContactInquiryIn, PublicEventIn
+from app.schemas import ContactInquiryIn, PublicEventIn, WaitlistIn
 from app.services.document_storage import get_bytes
 from app.services.events import maybe_infer_open, record_event, record_open_pixel_hit
 from app.services.messaging import add_suppression
@@ -82,6 +83,42 @@ def public_contact(payload: ContactInquiryIn, request: Request):
                 message=payload.message.strip(),
             )
         )
+        db.commit()
+        return {"ok": True}
+    finally:
+        db.close()
+
+
+@router.post("/api/v1/public/waitlist")
+def public_waitlist(payload: WaitlistIn, request: Request):
+    from app.errors import AppError
+
+    if not limiter.allow(f"waitlist:{_client(request)}", 8, 3600):
+        raise AppError(429, "rate_limited", "Too many waitlist attempts. Try again later.")
+    if (payload.website or "").strip():
+        return {"ok": True}
+    email = payload.email.strip().lower()
+    if "@" not in email or "." not in email.split("@")[-1]:
+        raise AppError(422, "invalid_request", "Enter a valid work or company email.")
+    company = (payload.company_name or "").strip() or None
+    db = SessionLocal()
+    try:
+        existing = db.query(WaitlistSignup).filter(WaitlistSignup.email == email).one_or_none()
+        if existing is not None:
+            existing.name = payload.name.strip()
+            existing.company_name = company
+            existing.monthly_sends = payload.monthly_sends
+            existing.willing_to_pay = payload.willing_to_pay.strip()
+        else:
+            db.add(
+                WaitlistSignup(
+                    name=payload.name.strip(),
+                    company_name=company,
+                    email=email,
+                    monthly_sends=payload.monthly_sends,
+                    willing_to_pay=payload.willing_to_pay.strip(),
+                )
+            )
         db.commit()
         return {"ok": True}
     finally:

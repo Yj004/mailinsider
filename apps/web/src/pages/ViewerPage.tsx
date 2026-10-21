@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react"
-import { Link, useParams } from "react-router-dom"
+import { useParams } from "react-router-dom"
 import workerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url"
 import { API_URL } from "../api"
+import { BrandLockup } from "../components/BrandMark"
 
 type Meta = {
   filename: string
@@ -129,7 +130,7 @@ export function ViewerPage() {
               Download
             </button>
           ) : null}
-          <Link to="/login">MailInsider</Link>
+          <BrandLockup to="/login" size={20} />
         </div>
       </header>
       <div className="viewer-stage">

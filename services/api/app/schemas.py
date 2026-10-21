@@ -21,6 +21,15 @@ class ContactInquiryIn(BaseModel):
     website: str | None = Field(default="", max_length=200)  # honeypot
 
 
+class WaitlistIn(BaseModel):
+    name: str = Field(min_length=1, max_length=200)
+    company_name: str | None = Field(default="", max_length=200)
+    email: str = Field(min_length=3, max_length=320)
+    monthly_sends: int = Field(ge=1, le=10_000_000)
+    willing_to_pay: str = Field(min_length=1, max_length=80)
+    website: str | None = Field(default="", max_length=200)  # honeypot
+
+
 class RegisterIn(BaseModel):
     email: str
     password: str
@@ -107,6 +116,8 @@ class MessageIn(BaseModel):
     document_expires_days: int | None = 30
     attach_pdf: bool = False
     include_sheet_link: bool = False
+    include_signature: bool = True
+    signature_text: str | None = Field(default=None, max_length=2000)
     send: bool = True
     idempotency_key: str | None = Field(default=None, max_length=80)
     workspace_id: str | None = None
@@ -128,6 +139,10 @@ class MessageIn(BaseModel):
         if len(value) > 100_000:
             raise ValueError("Message body is too long.")
         return value
+
+
+class HideIn(BaseModel):
+    hidden: bool = True
 
 
 class ConversationActionIn(BaseModel):

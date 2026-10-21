@@ -5,14 +5,21 @@
 **/.env
 **/.env.*
 !**/.env.example
+.env.local
+.env.production
+.env.development
 *.pem
 *.p12
 *.pfx
 credentials.json
 client_secret*.json
 service-account*.json
+token.json
+*-credentials.json
 **/secrets/
 TOKEN_ENCRYPTION_KEY*
+gcloud-*.json
+cloudbuild-env.yaml
 
 # Python
 .venv/

@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom"
 import { ArrowRight, FileText, Link2, Mail, Paperclip, ShieldCheck, Sparkles } from "lucide-react"
 import { useEffect } from "react"
+import { BrandLockup } from "../../components/BrandMark"
 
 export function HomePage() {
   useEffect(() => {
@@ -9,7 +10,7 @@ export function HomePage() {
 
   return (
     <>
-      <section className="relative overflow-hidden bg-[#f6f8fc]">
+      <section className="relative overflow-hidden bg-[#f5f5f7]">
         <div
           className="pointer-events-none absolute inset-0"
           style={{
@@ -19,12 +20,7 @@ export function HomePage() {
         />
         <div className="relative mx-auto grid max-w-6xl gap-12 px-5 pb-20 pt-14 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:pb-24 lg:pt-16">
           <div className="mi-fade-up">
-            <p className="font-display text-4xl font-semibold tracking-tight text-[#202124] sm:text-5xl lg:text-6xl">
-              Mail<span className="text-[#ea4335]">I</span>
-              <span className="text-[#fbbc04]">n</span>
-              <span className="text-[#34a853]">s</span>
-              <span className="text-[#4285f4]">ider</span>
-            </p>
+            <BrandLockup to="/" size={72} hero />
             <h1 className="mt-5 max-w-xl text-2xl font-medium leading-snug text-[#3c4043] sm:text-3xl">
               Send outreach that still feels human — then see what happened after.
             </h1>
@@ -33,8 +29,8 @@ export function HomePage() {
               then reply in the same thread.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Link className="mi-btn mi-btn-compose mi-btn-lg" to="/signup">
-                Compose with Gmail
+              <Link className="mi-btn mi-btn-compose mi-btn-lg" to="/waitlist">
+                Join the waitlist
                 <ArrowRight size={16} aria-hidden />
               </Link>
               <Link className="mi-btn mi-btn-ghost mi-btn-lg" to="/product-video">
@@ -87,7 +83,7 @@ export function HomePage() {
                 body: "JWT auth, hashed tracking tokens, encrypted refresh tokens, and tenant isolation on every request.",
               },
             ].map((item) => (
-              <article key={item.title} className="rounded-2xl border border-[#e0e3e7] bg-[#f6f8fc] p-6">
+              <article key={item.title} className="rounded-2xl border border-black/5 bg-white/80 p-6 shadow-[0_8px_24px_rgba(0,0,0,0.04)]">
                 <item.icon className="text-[#1a73e8]" size={22} aria-hidden />
                 <h3 className="mt-4 text-lg font-semibold text-[#202124]">{item.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-[#5f6368]">{item.body}</p>
@@ -97,7 +93,7 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="bg-[#f6f8fc] px-5 py-20">
+      <section className="bg-[#f5f5f7] px-5 py-20">
         <div className="mx-auto max-w-6xl">
           <p className="text-sm font-semibold uppercase tracking-wider text-[#1a73e8]">How it works</p>
           <h2 className="font-display mt-2 text-3xl font-semibold text-[#202124]">Three steps from draft to signal</h2>
@@ -134,9 +130,9 @@ export function HomePage() {
       <section className="bg-white px-5 py-20">
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="font-display text-3xl font-semibold text-[#202124]">Ready to see what happens after you hit send?</h2>
-          <p className="mt-3 text-[#5f6368]">Create a workspace, connect Gmail, and send your first tracked message today.</p>
-          <Link className="mi-btn mi-btn-compose mi-btn-lg mt-8 inline-flex" to="/signup">
-            Get started
+          <p className="mt-3 text-[#5f6368]">Join the waitlist — we’ll open workspaces as we review volume and pricing.</p>
+          <Link className="mi-btn mi-btn-compose mi-btn-lg mt-8 inline-flex" to="/waitlist">
+            Join the waitlist
           </Link>
         </div>
       </section>

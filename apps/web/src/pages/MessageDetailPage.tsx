@@ -201,12 +201,37 @@ export function MessageDetailPage() {
     <div className="gmail-conv">
       <div className="gmail-conv-toolbar">
         <div className="gmail-conv-toolbar-left">
-          <Link className="gmail-icon-btn" to="/app/mail" title="Back to Mail" aria-label="Back to Mail">
+          <Link
+            className="gmail-icon-btn"
+            to={message?.hidden ? "/app/mail?folder=hidden" : "/app/mail"}
+            title="Back to Mail"
+            aria-label="Back to Mail"
+          >
             ←
           </Link>
           <button type="button" className="btn small ghost" onClick={() => setShowActivity((v) => !v)}>
             {showActivity ? "Hide activity" : "Activity"}
           </button>
+          {canSend(membership?.role) ? (
+            <button
+              type="button"
+              className="btn small ghost"
+              onClick={() => {
+                const hide = !message.hidden
+                api(`/api/v1/messages/${message.id}/hide`, {
+                  method: "POST",
+                  body: JSON.stringify({ hidden: hide }),
+                })
+                  .then(() => {
+                    toast(hide ? "Hidden from Mail." : "Shown in Mail again.")
+                    navigate(hide ? "/app/mail?folder=hidden" : "/app/mail")
+                  })
+                  .catch((err) => toast(err instanceof ApiError ? err.message : "Could not update mail.", "bad"))
+              }}
+            >
+              {message.hidden ? "Show in Mail" : "Hide from Mail"}
+            </button>
+          ) : null}
           {senders ? (
             <button
               type="button"

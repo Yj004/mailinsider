@@ -480,9 +480,12 @@ def render_recipient(
     personalized_text = render_text(message.body_text or "", fields)
     personalized_html = render_text(message.body_html or "", fields) if message.body_html else None
     html = _body_html(personalized_text, personalized_html)
-    profile = db.query(AiProfile).filter(AiProfile.workspace_id == message.workspace_id).one_or_none()
-    sig_text = (profile.email_signature or "").strip() if profile else ""
-    html = _append_signature(html, signature_text=sig_text or None)
+    if getattr(message, "include_signature", True):
+        sig_text = (getattr(message, "signature_text", None) or "").strip()
+        if not sig_text:
+            profile = db.query(AiProfile).filter(AiProfile.workspace_id == message.workspace_id).one_or_none()
+            sig_text = (profile.email_signature or "").strip() if profile else ""
+        html = _append_signature(html, signature_text=sig_text or None)
     if document:
         raw = new_token()
         db.add(

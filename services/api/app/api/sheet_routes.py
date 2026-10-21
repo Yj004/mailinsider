@@ -72,7 +72,10 @@ def _retire(db, workspace_id: str) -> None:
 def list_sheets(ctx: Ctx = Depends(get_ctx)):
     rows = (
         ctx.db.query(SheetConnection)
-        .filter(SheetConnection.workspace_id == ctx.workspace.id)
+        .filter(
+            SheetConnection.workspace_id == ctx.workspace.id,
+            SheetConnection.status.in_(("connected", "needs_reauth")),
+        )
         .order_by(SheetConnection.created_at.desc())
         .all()
     )

@@ -4,6 +4,7 @@ from fastapi import Depends, Header
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
+from app.core.access import require_operator_email
 from app.core.database import get_db
 from app.core.security import decode_access_token
 from app.errors import AppError
@@ -41,6 +42,7 @@ def get_current_user(
     user = db.get(User, user_id)
     if user is None:
         raise AppError(401, "unauthorized", "Sign in to continue.")
+    require_operator_email(user.email)
     return user
 
 

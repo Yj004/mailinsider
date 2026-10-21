@@ -1,7 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom"
 import { useAuth } from "./auth"
 import { Shell } from "./components/Shell"
-import { ForgotPage, LoginPage, ResetPage, SignupPage } from "./pages/AuthPages"
+import { ForgotPage, LoginPage, ResetPage } from "./pages/AuthPages"
 import { AiPrPage } from "./pages/AiPrPage"
 import { ComposePage } from "./pages/ComposePage"
 import { DocumentsPage } from "./pages/DocumentsPage"
@@ -23,6 +23,8 @@ import { PricingPage } from "./pages/public/PricingPage"
 import { ContactPage } from "./pages/public/ContactPage"
 import { FeaturesPage } from "./pages/public/FeaturesPage"
 import { ProductVideoPage } from "./pages/public/ProductVideoPage"
+import { WaitlistPage } from "./pages/public/WaitlistPage"
+import { WaitlistAdminPage } from "./pages/WaitlistAdminPage"
 
 export function App() {
   return (
@@ -31,11 +33,12 @@ export function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/contact" element={<ContactPage />} />
+        <Route path="/waitlist" element={<WaitlistPage />} />
         <Route path="/features" element={<FeaturesPage />} />
       </Route>
       <Route path="/product-video" element={<ProductVideoPage />} />
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/signup" element={<SignupPage />} />
+      <Route path="/signup" element={<Navigate to="/waitlist" replace />} />
       <Route path="/forgot" element={<ForgotPage />} />
       <Route path="/reset" element={<ResetPage />} />
       <Route path="/view/:token" element={<ViewerPage />} />
@@ -84,6 +87,7 @@ export function App() {
         <Route path="documents" element={<DocumentsPage />} />
         <Route path="insights" element={<InsightsPage />} />
         <Route path="analytics" element={<Navigate to="/app/insights" replace />} />
+        <Route path="waitlist" element={<WaitlistAdminPage />} />
         <Route path="integrations" element={<IntegrationsPage />} />
         <Route path="team" element={<TeamPage />} />
         <Route path="audit" element={<AuditPage />} />

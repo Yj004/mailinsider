@@ -3,6 +3,7 @@ from datetime import timedelta
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
+from app.core.access import require_operator_email
 from app.core.config import get_settings
 from app.core.database import get_db
 from app.core.limiter import limiter
@@ -113,6 +114,7 @@ def register(payload: RegisterIn, request: Request, db: Session = Depends(get_db
     if not limiter.allow(f"register:{_client(request)}", 8, 60):
         raise AppError(429, "rate_limited", "Too many attempts. Wait a minute and try again.")
     email, _ = normalize_address(payload.email, None)
+    require_operator_email(email)
     _password_ok(payload.password, email)
     if db.query(User).filter(User.email == email).one_or_none():
         raise AppError(400, "email_taken", "An account with that email already exists. Sign in instead.")
@@ -149,6 +151,7 @@ def login(payload: LoginIn, request: Request, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == email).one_or_none()
     if user is None or not verify_password(payload.password, user.password_hash):
         raise AppError(401, "invalid_login", "That email and password do not match.")
+    require_operator_email(email)
     return _session(db, user)
 
 
@@ -185,6 +188,7 @@ def reset_password(payload: ResetIn, db: Session = Depends(get_db)):
     user = db.get(User, row.user_id)
     if user is None:
         raise AppError(400, "invalid_reset", "That reset code is invalid or expired. Request a new one.")
+    require_operator_email(user.email)
     _password_ok(payload.password, user.email)
     user.password_hash = hash_password(payload.password)
     row.used_at = utcnow()

@@ -34,6 +34,8 @@ class ComposeAiIn(BaseModel):
     recipient_email: str | None = None
     thread_snippet: str = Field(default="", max_length=4000)
     goal: str = Field(default="", max_length=400)
+    include_signature: bool = True
+    signature_text: str = Field(default="", max_length=2000)
 
 
 def _client(request: Request) -> str:
@@ -159,6 +161,8 @@ async def compose_ai(payload: ComposeAiIn, request: Request, ctx: Ctx = Depends(
         length=payload.length,
         recipient=recipient,
         thread_snippet=payload.thread_snippet,
+        include_signature=payload.include_signature,
+        signature_text=payload.signature_text,
         db=ctx.db,
         workspace_id=ctx.workspace.id,
     )

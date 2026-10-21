@@ -7,8 +7,8 @@ const PLANS = [
     name: "Starter",
     price: "Free",
     interval: "while you evaluate",
-    cta: "Create workspace",
-    to: "/signup",
+    cta: "Join waitlist",
+    to: "/waitlist",
     highlight: false,
     features: [
       "Gmail send connection",
@@ -43,13 +43,13 @@ export function PricingPage() {
   }, [])
 
   return (
-    <div className="bg-[#f6f8fc] px-5 py-16">
+    <div className="bg-[#f5f5f7] px-5 py-16">
       <div className="mx-auto max-w-6xl">
         <p className="text-sm font-semibold uppercase tracking-wider text-[#1a73e8]/70">Pricing</p>
         <h1 className="font-display mt-2 text-4xl font-semibold text-ink">Straightforward plans</h1>
         <p className="mt-3 max-w-2xl text-slate-600">
-          Pricing reflects capabilities that ship today. There is no fake checkout — Starter is available immediately;
-          Pro is arranged when you need higher volume or team features.
+          Public sign-up is closed. Join the waitlist with monthly volume (including follow-ups) and what you’d pay.
+          We’ll open a workspace when you’re approved.
         </p>
         <div className="mt-12 grid gap-6 md:grid-cols-2">
           {PLANS.map((plan) => (
